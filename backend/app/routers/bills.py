@@ -51,6 +51,21 @@ def _get_current_session_id(legis: LegiScan, state: str) -> int | None:
     return pool[0]["session_id"]
 
 
+_PARTY_MAP = {
+    "D": "Democratic",
+    "R": "Republican",
+    "I": "Independent",
+}
+
+
+def _get_sponsor_party(sponsors: list[dict]) -> str | None:
+    primary = next((s for s in sponsors if s.get("sponsor_type_id") == 1), None)
+    sponsor = primary or (sponsors[0] if sponsors else None)
+    if not sponsor:
+        return None
+    return _PARTY_MAP.get(sponsor.get("party"), "Independent")
+
+
 def _extract_pdf_text(legis: LegiScan, texts: list[dict]) -> str | None:
     for t in texts:
         if t.get("mime") != PDF_MIME:
@@ -102,13 +117,16 @@ def collect():
                     detail = legis.get_bill(bill_id=bill_id)
                     texts = detail.get("texts", [])
                     pdf_text = _extract_pdf_text(legis, texts)
+                    party = _get_sponsor_party(detail.get("sponsors", []))
                     if pdf_text:
                         log.info(f"[{state}] bill {bill_id} — extracted {len(pdf_text)} chars")
                     else:
                         log.warning(f"[{state}] bill {bill_id} — no PDF text extracted")
+                    log.info(f"[{state}] bill {bill_id} — party: {party}")
                 except Exception as e:
                     log.error(f"[{state}] bill {bill_id} — error: {e}")
                     pdf_text = None
+                    party = None
 
                 bills.append({
                     "bill_id": bill_id,
@@ -120,6 +138,7 @@ def collect():
                     "last_action": entry.get("last_action", ""),
                     "last_action_date": entry.get("last_action_date", ""),
                     "text": pdf_text,
+                    "party": party,
                 })
                 time.sleep(0.1)
 
