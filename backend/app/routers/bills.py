@@ -1,8 +1,28 @@
+import base64
+import io
 import json
+import logging
+import os
 import time
 from pathlib import Path
+
+import pdfplumber
 from flask import Blueprint, jsonify, request
 from app.legiscan import LegiScan
+
+DEV = os.getenv("DEV", "false").lower() == "true"
+DEV_BILL_LIMIT = 10
+
+LOG_FILE = Path(__file__).parent.parent / "collect.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler(),
+    ],
+)
+log = logging.getLogger(__name__)
 
 bills_bp = Blueprint("bills", __name__, url_prefix="/bills")
 
@@ -14,6 +34,7 @@ PDF_STATES = [
 ]
 
 BILLS_FILE = Path(__file__).parent.parent / "bills.json"
+PDF_MIME = "application/pdf"
 
 
 def _load_bills() -> list[dict]:
@@ -36,9 +57,25 @@ def _get_current_session_id(legis: LegiScan, state: str) -> int | None:
     return pool[0]["session_id"]
 
 
+def _extract_pdf_text(legis: LegiScan, texts: list[dict]) -> str | None:
+    """Find the first PDF text doc, fetch it, and extract text with pdfplumber."""
+    for t in texts:
+        if t.get("mime") != PDF_MIME:
+            continue
+        try:
+            doc = legis.get_bill_text(t["doc_id"])
+            pdf_bytes = base64.b64decode(doc["doc"])
+            with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                text = "\n".join(p.extract_text() or "" for p in pdf.pages)
+            return text.strip() or None
+        except Exception:
+            continue
+    return None
+
+
 @bills_bp.route("/collect", methods=["POST"])
 def collect():
-    """Collect bills from all PDF states and save to disk."""
+    """Collect bills from all PDF states, extract PDF text, and save to disk."""
     sample_size = request.json.get("sample_size", 20) if request.is_json else 20
     legis = LegiScan()
 
@@ -46,17 +83,41 @@ def collect():
     states_done = []
     states_failed = []
 
+    if DEV:
+        log.info(f"DEV mode: limiting to {DEV_BILL_LIMIT} bills total")
+
     for state in PDF_STATES:
+        if DEV and len(bills) >= DEV_BILL_LIMIT:
+            break
         try:
+            log.info(f"[{state}] fetching current session...")
             session_id = _get_current_session_id(legis, state)
             if not session_id:
+                log.warning(f"[{state}] no session found, skipping")
                 states_failed.append(state)
                 continue
 
             master = legis.get_master_list(session_id=session_id)
-            for entry in master[:sample_size]:
+            limit = min(sample_size, DEV_BILL_LIMIT - len(bills)) if DEV else sample_size
+            log.info(f"[{state}] session {session_id}, collecting {limit} bills...")
+
+            for entry in master[:limit]:
+                bill_id = entry.get("bill_id")
+                log.info(f"[{state}] bill {bill_id} ({entry.get('number')}) — fetching detail + PDF text")
+                try:
+                    detail = legis.get_bill(bill_id=bill_id)
+                    texts = detail.get("texts", [])
+                    pdf_text = _extract_pdf_text(legis, texts)
+                    if pdf_text:
+                        log.info(f"[{state}] bill {bill_id} — extracted {len(pdf_text)} chars")
+                    else:
+                        log.warning(f"[{state}] bill {bill_id} — no PDF text extracted")
+                except Exception as e:
+                    log.error(f"[{state}] bill {bill_id} — error: {e}")
+                    pdf_text = None
+
                 bills.append({
-                    "bill_id": entry.get("bill_id"),
+                    "bill_id": bill_id,
                     "bill_number": entry.get("number"),
                     "title": entry.get("title"),
                     "description": entry.get("description", ""),
@@ -64,14 +125,18 @@ def collect():
                     "url": entry.get("url", ""),
                     "last_action": entry.get("last_action", ""),
                     "last_action_date": entry.get("last_action_date", ""),
+                    "text": pdf_text,
                 })
-                time.sleep(0.05)
+                time.sleep(0.1)
 
             states_done.append(state)
-        except Exception:
+            log.info(f"[{state}] done. total bills so far: {len(bills)}")
+        except Exception as e:
+            log.error(f"[{state}] failed: {e}")
             states_failed.append(state)
 
     _save_bills(bills)
+    log.info(f"Collection complete. {len(bills)} bills saved to {BILLS_FILE}")
 
     return jsonify({
         "total_bills": len(bills),
@@ -91,6 +156,5 @@ def list_bills():
 
 @bills_bp.route("/<int:bill_id>")
 def get_bill(bill_id):
-    """Get full detail for a single bill from LegiScan."""
     bill = LegiScan().get_bill(bill_id=bill_id)
     return jsonify(bill)
