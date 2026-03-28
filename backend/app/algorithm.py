@@ -12,7 +12,7 @@ if not BACKEND_API:
     raise RuntimeError("no backend api")
 
 
-def get_updated_elo(bill_id : int, user_id : int) -> float: 
+def get_updated_elo(bill_id : int, user_id : int, user_vote : int) -> float: 
     user_response = requests.get(f'{BACKEND_API}/user/{user_id}')
     bill_response = requests.get(f'{BACKEND_API}/bill/{bill_id}')
     user_response.raise_for_status()
@@ -25,23 +25,27 @@ def get_updated_elo(bill_id : int, user_id : int) -> float:
     bill_bias = bill['bias']
     user_bias = user['bias']
 
-    return elo_alg(elo=elo, bill_bias=bill_bias, user_bias=user_bias)
+    return elo_alg(elo=elo, bill_bias=bill_bias, user_bias=user_bias, user_vote=user_vote)
 
-
-# this function blah blah blah
-def elo_alg(elo : float, bill_bias : str, user_bias : float) -> float:
-    bias_text = bill_bias.strip().lower()
-
-    if bias_text not in ("left", "right"):
-        raise ValueError("bill_bias must be 'left' or 'right'")
+def elo_alg(elo : float, bill_bias : int, user_bias : float, user_vote : int) -> float :
+    if bill_bias not in (0, 1, 2):
+        raise ValueError("bill_bias must be 0, 1, or 2")
     if not 0.0 <= user_bias <= 1.0:
         raise ValueError("user_bias must be between 0.0 and 1.0")
+    if user_vote not in (0, 1):
+        raise ValueError("user_vote must be 0 or 1")
 
-    bill_side = 0.0 if bias_text == "left" else 1.0
-    
+    if bill_bias == 0:
+        bill_side = 1.0
+    elif bill_bias == 1:
+        bill_side = 0.0
+    else:
+        bill_side = 0.5
+
     distance = abs(user_bias - bill_side)
-    min_boost = 4.0
-    max_boost = 24.0
+    min_boost = 5.0
+    max_boost = 25.0
     boost = min_boost + ((max_boost - min_boost) * distance)
+    vote_direction = 1 if user_vote == 1 else -1
 
-    return elo + boost
+    return elo + (boost * vote_direction)
