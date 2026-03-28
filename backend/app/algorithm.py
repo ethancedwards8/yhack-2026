@@ -36,12 +36,10 @@ def elo_alg(elo : float, bill_bias : str, user_bias : float) -> float:
         raise ValueError("user_bias must be between 0.0 and 1.0")
 
     bill_side = 0.0 if bias_text == "left" else 1.0
-
-    # Larger ideological distance means a larger ELO increase.
+    
     distance = abs(user_bias - bill_side)
-
     min_boost = 4.0
     max_boost = 24.0
-    boost = min_boost + (max_boost - min_boost) * distance
+    boost = min_boost + ((max_boost - min_boost) * distance)
 
     return elo + boost
