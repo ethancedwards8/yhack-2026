@@ -129,6 +129,8 @@ def collect():
             log.error(f"[{state}] failed: {e}")
             states_failed.append(state)
 
+    bills = [b for b in bills if b["bill_id"] is not None]
+
     if bills:
         log.info(f"Upserting {len(bills)} bills into Supabase...")
         sb.table("bills").upsert(bills, on_conflict="bill_id").execute()
