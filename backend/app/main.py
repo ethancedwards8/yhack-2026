@@ -1,7 +1,10 @@
 from flask import Flask, jsonify, request
 from app.legiscan import LegiScan
+from app.routers.bills import bills_bp
 
 app = Flask(__name__)
+app.register_blueprint(bills_bp)
+
 legis = LegiScan()  # reads LEGISCAN_API_KEY from environment
 
 
