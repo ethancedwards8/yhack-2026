@@ -1,3 +1,4 @@
 /__pycache__
+supabase/.temp
 /app/__pycache__
 .env
