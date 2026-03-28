@@ -2,3 +2,4 @@
 supabase/.temp
 /app/__pycache__
 .env
+uv.lock
