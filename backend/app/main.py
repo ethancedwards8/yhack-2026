@@ -4,17 +4,26 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from supabase import create_client
 
 from app.legiscan import LegiScan
 from app.routers.bills import bills_bp
+from app.routers.users import users_bp
+from app.routers.votes import votes_bp
 
 _backend_root = Path(__file__).resolve().parent.parent
 load_dotenv(_backend_root / ".env")
 
 app = Flask(__name__)
 app.register_blueprint(bills_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(votes_bp)
 
 legis = LegiScan()
+
+
+def _get_supabase():
+    return create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
 _default_origins = [
     "http://127.0.0.1:3000",
@@ -48,5 +57,6 @@ def search():
 
 @app.route("/bill/<int:bill_id>")
 def get_bill(bill_id):
-    bill = legis.get_bill(bill_id)
-    return jsonify(bill)
+    sb = _get_supabase()
+    result = sb.table("bills").select("*").eq("bill_id", bill_id).single().execute()
+    return jsonify(result.data)
