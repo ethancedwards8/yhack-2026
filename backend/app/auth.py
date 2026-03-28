@@ -1,3 +1,4 @@
+import logging
 import os
 from functools import wraps
 
@@ -5,6 +6,8 @@ import jwt
 from jwt import PyJWKClient
 from flask import request, jsonify, g
 from supabase import create_client
+
+logger = logging.getLogger(__name__)
 
 _jwks_client = None
 
@@ -23,15 +26,19 @@ def _get_supabase():
 
 def verify_token(token: str) -> dict:
     domain = os.environ["AUTH0_DOMAIN"]
+    audience = os.environ.get("AUTH0_AUDIENCE")
 
     signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
-    return jwt.decode(
-        token,
-        signing_key.key,
-        algorithms=["RS256"],
-        issuer=f"https://{domain}/",
-        options={"verify_aud": False},
-    )
+    kwargs = {
+        "algorithms": ["RS256"],
+        "issuer": f"https://{domain}/",
+    }
+    if audience:
+        kwargs["audience"] = audience
+    else:
+        kwargs["options"] = {"verify_aud": False}
+
+    return jwt.decode(token, signing_key.key, **kwargs)
 
 
 def require_auth(f):
@@ -52,13 +59,19 @@ def require_auth(f):
         g.user_claims = claims
         g.user_id = claims["sub"]
 
-        # Upsert user to Supabase
-        sb = _get_supabase()
-        sb.table("users").upsert({
-            "user_id": claims["sub"],
-            "name": claims.get("name", claims.get("nickname", "")),
-            "email": claims.get("email", ""),
-        }, on_conflict="user_id").execute()
+        try:
+            sb = _get_supabase()
+            payload = {
+                "user_id": claims["sub"],
+                "name": claims.get("name", claims.get("nickname", "")),
+                "email": claims.get("email", ""),
+                "bias": 0.5,
+            }
+            logger.info("Upserting user: %s", payload)
+            result = sb.table("users").upsert(payload, on_conflict="user_id").execute()
+            logger.info("Upsert result: %s", result)
+        except Exception:
+            logger.exception("Failed to upsert user")
 
         return f(*args, **kwargs)
     return decorated
