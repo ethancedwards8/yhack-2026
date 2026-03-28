@@ -2,18 +2,25 @@
 
 import { useEffect, useRef } from "react";
 import { useUser } from "@auth0/nextjs-auth0";
+import { useUserState } from "../context/UserStateContext";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+const PDF_STATES = [
+  "AK","AL","AR","CO","CT","DC","FL","GA","HI","ID",
+  "IN","KS","KY","LA","MA","MD","ME","MN","MO","MS",
+  "MT","NC","ND","NE","NJ","NM","NV","OH","OK","OR",
+  "PA","RI","SD","TN","US","UT","VA","VT","WA","WI","WY",
+];
+
 export default function Navbar() {
   const { user, isLoading } = useUser();
+  const { state, setState } = useUserState();
   const synced = useRef(false);
 
-  // Sync user to Supabase via backend on first login detection
   useEffect(() => {
     if (!user || synced.current) return;
     synced.current = true;
-
     fetch("/auth/access-token")
       .then((r) => r.json())
       .then(({ token }) => {
@@ -38,6 +45,24 @@ export default function Navbar() {
       </a>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        {user && (
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            style={{
+              fontSize: "0.875rem",
+              padding: "4px 8px",
+              borderRadius: "6px",
+              border: "1px solid #555",
+              background: "transparent",
+              cursor: "pointer",
+            }}
+          >
+            {PDF_STATES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        )}
         {isLoading ? (
           <span style={{ fontSize: "0.875rem", opacity: 0.5 }}>...</span>
         ) : user ? (
