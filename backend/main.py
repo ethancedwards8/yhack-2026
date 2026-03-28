@@ -1,4 +1,11 @@
 from app.main import app
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    import subprocess
+    subprocess.run([
+        "gunicorn", "app.main:app",
+        "--bind", "0.0.0.0:8000",
+        "--workers", "4",
+        "--threads", "4",
+        "--worker-class", "gthread",
+    ])
