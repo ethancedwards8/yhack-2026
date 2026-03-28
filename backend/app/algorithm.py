@@ -27,6 +27,8 @@ def get_updated_elo(bill_id : int, user_id : int) -> float:
 
     return elo_alg(elo=elo, bill_bias=bill_bias, user_bias=user_bias)
 
+
+# this function blah blah blah
 def elo_alg(elo : float, bill_bias : str, user_bias : float) -> float:
     bias_text = bill_bias.strip().lower()
 
