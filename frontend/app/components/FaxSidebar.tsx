@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCurrentBill } from "@/app/context/CurrentBillContext";
 import { useUserState } from "@/app/context/UserStateContext";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = "https://api.hotbillsnearyou.com";
 
 type FaxResult = {
   name: string;
