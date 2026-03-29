@@ -6,9 +6,10 @@ import time
 from pathlib import Path
 
 import pdfplumber
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from supabase import create_client, Client
 
+from app.auth import optional_auth
 from app.legiscan import LegiScan
 
 logger = logging.getLogger(__name__)
@@ -211,15 +212,17 @@ def collect():
 
 
 @bills_bp.route("/")
+@optional_auth
 def list_bills():
     sb = _get_supabase()
     state = request.args.get("state", "").upper() or None
     include_text = _as_bool(request.args.get("include_text"), default=False)
     limit = min(_as_int(request.args.get("limit"), default=30, minimum=1), MAX_PAGE_SIZE)
     offset = _as_int(request.args.get("offset"), default=0, minimum=0)
+    user_id = getattr(g, "user_id", None)
 
-    logger.info("list_bills called: state=%s, limit=%d, offset=%d, include_text=%s",
-                state, limit, offset, include_text)
+    logger.info("list_bills called: state=%s, limit=%d, offset=%d, include_text=%s, user_id=%s",
+                state, limit, offset, include_text, user_id)
 
     select_columns = (
         "*"
@@ -232,6 +235,18 @@ def list_bills():
     query = sb.table("bills").select(select_columns)
     if state:
         query = query.eq("state", state)
+
+    # Exclude bills the user has already swiped on
+    if user_id:
+        try:
+            swiped = sb.table("swipes").select("bill_id").eq("user_id", user_id).execute()
+            swiped_ids = [str(s["bill_id"]) for s in (swiped.data or [])]
+            if swiped_ids:
+                query = query.not_.in_("bill_id", swiped_ids)
+            logger.info("list_bills excluding %d swiped bills for user %s", len(swiped_ids), user_id)
+        except Exception:
+            logger.exception("Failed to fetch swiped bills for user %s", user_id)
+
     query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
 
     try:

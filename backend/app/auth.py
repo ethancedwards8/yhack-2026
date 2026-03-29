@@ -36,6 +36,24 @@ def verify_token(token: str) -> dict:
     )
 
 
+def optional_auth(f):
+    """Like require_auth but doesn't reject unauthenticated requests.
+    Sets g.user_id if a valid token is present, otherwise leaves it unset."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+            try:
+                claims = verify_token(token)
+                g.user_id = claims["sub"]
+                g.user_claims = claims
+            except jwt.InvalidTokenError:
+                pass
+        return f(*args, **kwargs)
+    return decorated
+
+
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):

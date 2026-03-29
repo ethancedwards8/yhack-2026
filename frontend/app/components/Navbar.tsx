@@ -60,9 +60,10 @@ export default function Navbar() {
           BillRank
         </a>
         {user && (
-          <a href="/match" style={{ fontSize: "0.875rem", opacity: 0.75 }}>
-            Find Match
-          </a>
+          <>
+            <a href="/match" style={{ fontSize: "0.875rem", opacity: 0.75 }}>Find Match</a>
+            <a href="/votes" style={{ fontSize: "0.875rem", opacity: 0.75 }}>My Votes</a>
+          </>
         )}
       </div>
 

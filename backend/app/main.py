@@ -95,6 +95,41 @@ def me():
     return jsonify(result.data)
 
 
+@app.route("/me/votes")
+@require_auth
+def me_votes():
+    """Return all bills the current user has swiped on, with their vote."""
+    sb = _get_supabase()
+    try:
+        result = (
+            sb.table("swipes")
+            .select("bill_id, agree, created_at, bills(bill_id, title, description, state, party, bill_elo, pdf_url)")
+            .eq("user_id", g.user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+    except Exception as exc:
+        logger.exception("GET /me/votes failed for user_id=%s", g.user_id)
+        return jsonify({"error": "failed to fetch votes", "details": str(exc)}), 500
+
+    votes = []
+    for row in (result.data or []):
+        bill = row.get("bills") or {}
+        votes.append({
+            "bill_id": row["bill_id"],
+            "agree": row["agree"],
+            "voted_at": row.get("created_at"),
+            "title": bill.get("title"),
+            "description": bill.get("description"),
+            "state": bill.get("state"),
+            "party": bill.get("party"),
+            "bill_elo": bill.get("bill_elo"),
+            "pdf_url": bill.get("pdf_url"),
+        })
+
+    return jsonify(votes)
+
+
 @app.route("/me", methods=["PATCH"])
 @require_auth
 def update_me():

@@ -76,10 +76,16 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
     setIsLoading(true)
     setError(null)
     try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
       const stateParam = userState ? `&state=${userState}` : ""
       const url = `${apiBaseUrl}/bills/?limit=${PAGE_SIZE}&offset=0&include_text=false${stateParam}`
       console.log("[BillSwipeDeck] fetching:", url)
-      const response = await fetch(url, { credentials: "include" })
+      const headers: HeadersInit = { "Content-Type": "application/json" }
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+      const response = await fetch(url, { credentials: "include", headers })
       console.log("[BillSwipeDeck] response status:", response.status)
       if (!response.ok) {
         throw new Error(`Failed to load bills (${response.status})`)
