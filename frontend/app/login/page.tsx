@@ -6,10 +6,11 @@ import { createClient } from "@/lib/supabase/client";
 type Mode = "login" | "signup";
 
 const PDF_STATES = [
-  "AK","AL","AR","CO","CT","DC","FL","GA","HI","ID",
-  "IN","KS","KY","LA","MA","MD","ME","MN","MO","MS",
-  "MT","NC","ND","NE","NJ","NM","NV","OH","OK","OR",
-  "PA","RI","SD","TN","US","UT","VA","VT","WA","WI","WY",
+  // "AK","AL","AR","CO","CT","DC","FL","GA","HI","ID",
+  // "IN","KS","KY","LA","MA","MD","ME","MN","MO","MS",
+  // "MT","NC","ND","NE","NJ","NM","NV","OH","OK","OR",
+  // "PA","RI","SD","TN","US","UT","VA","VT","WA","WI","WY",
+ "MA", "CT", "MD", "RI"
 ];
 
 export default function LoginPage() {
