@@ -10,7 +10,7 @@ if str(_backend_root) not in sys.path:
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
 from flask_cors import CORS
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 from app.auth import require_auth
 from app.legiscan import LegiScan
@@ -69,10 +69,6 @@ CORS(
 )
 
 
-def _get_supabase():
-    return create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
-
-
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
@@ -84,6 +80,18 @@ def me():
     sb = _get_supabase()
     result = sb.table("users").select("*").eq("user_id", g.user_id).single().execute()
     return jsonify(result.data)
+
+
+@app.route("/me", methods=["PATCH"])
+@require_auth
+def update_me():
+    data = request.get_json(silent=True) or {}
+    allowed = {k: v for k, v in data.items() if k in ("state", "bias")}
+    if not allowed:
+        return jsonify({"error": "no valid fields to update"}), 400
+    sb = _get_supabase()
+    result = sb.table("users").update(allowed).eq("user_id", g.user_id).execute()
+    return jsonify(result.data[0] if result.data else {})
 
 
 @app.route("/search")
