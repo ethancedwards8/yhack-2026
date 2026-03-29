@@ -147,7 +147,7 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
       } else if (event.key === "ArrowRight") {
         event.preventDefault()
         void performSwipe("right")
-      } else if (event.key === "Enter") {
+      } else if (event.key === "ArrowUp" || event.key === "Enter") {
         event.preventDefault()
         setDetailBillId(topBill.bill_id)
       }
