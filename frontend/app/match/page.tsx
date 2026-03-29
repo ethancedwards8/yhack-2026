@@ -16,14 +16,14 @@ type MatchedUser = {
 function biasLabel(bias: number): string {
   if (bias < 0.2) return "Strong Democrat"
   if (bias < 0.4) return "Leaning Democrat"
-  if (bias < 0.6) return "Independent"
+  if (bias < 0.6) return "Neutral"
   if (bias < 0.8) return "Leaning Republican"
   return "Strong Republican"
 }
 
 function biasColor(bias: number): string {
-  if (bias < 0.4) return "#3b82f6"
-  if (bias < 0.6) return "#a855f7"
+  if (bias < 0.4) return "#9eff01"
+  if (bias < 0.6) return "#ff4400"
   return "#ef4444"
 }
 
@@ -211,7 +211,7 @@ export default function MatchPage() {
                   top: 0,
                   height: "100%",
                   width: `${match.bias * 100}%`,
-                  background: `linear-gradient(to right, #3b82f6, ${biasColor(match.bias)})`,
+                  background: `linear-gradient(to right, #73ff00, ${biasColor(match.bias)})`,
                   transition: "width 0.6s ease",
                 }} />
               </div>
