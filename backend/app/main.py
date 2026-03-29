@@ -174,46 +174,94 @@ def register_swipe():
     return jsonify(), 200
     
 
+@app.route("/leaderboard/<user_id>", methods=["GET"])
+def get_leaderboard(user_id):
+    sb = _get_supabase()
+
+    result = (
+        sb.table("users")
+        .select("user_id,bias,name,email,state")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        return jsonify({"error": "could not find user"}), 404
+
+    state = result.data[0].get("state")
+    uid = result.data[0].get("user_id")
+
+    swipe_result = (
+        sb.table("swipes")
+        .select("bill_id")
+        .eq("user_id", uid)
+        .execute()
+    )
+
+    swiped_ids = set(s["bill_id"] for s in swipe_result.data)
+
+    bills_result = (
+        sb.table("bills")
+        .select("*")
+        .eq("state", state)
+        .order("bill_elo", desc=True)
+        .limit(10)
+        .execute()
+    )
+
+    leaderboard = []
+    for bill in bills_result.data:
+        leaderboard.append({
+            **bill,
+            "visible": bill["bill_id"] in swiped_ids
+        })
+
+    return jsonify({
+        "leaderboard": leaderboard
+    })
+
+
 @app.route("/elo", methods=["POST"])
 def update_elo():
     sb = _get_supabase()
     data = request.get_json(silent=True) or {}
 
     bill_id_raw = data.get("bill_id")
-    user_id_raw = data.get("user_id")
+    user_id = data.get("user_id")
     user_vote_raw = data.get("user_vote")
 
-    if bill_id_raw is None or user_id_raw is None or user_vote_raw is None:
+    if bill_id_raw is None or user_id is None or user_vote_raw is None:
         return jsonify({"error": "bill_id, user_id, and user_vote are required"}), 400
 
     try:
         bill_id = int(bill_id_raw)
-        user_id = int(user_id_raw)
         user_vote = int(user_vote_raw)
     except (TypeError, ValueError):
-        return jsonify({"error": "bill_id, user_id, and user_vote must be integers"}), 400
+        return jsonify({"error": "bill_id and user_vote must be integers"}), 400
 
     bill = (
         sb.table("bills")
         .select("party")
         .eq("bill_id", bill_id)
-        .single()
+        .maybe_single()
         .execute()
-        .data
     )
-    if not bill:
+    if not bill.data:
         return jsonify({"error": "bill not found", "bill_id": bill_id}), 404
+    
+    bill = bill.data
 
     user = (
         sb.table("users")
         .select("bias")
         .eq("user_id", str(user_id))
-        .single()
+        .maybe_single()
         .execute()
-        .data
     )
-    if not user:
+    if not user.data:
         return jsonify({"error": "user not found", "user_id": user_id}), 404
+    
+    user = user.data
 
     bill_bias = _normalize_bill_bias(bill.get("party"))
     user_bias_raw = user.get("bias")
@@ -255,8 +303,28 @@ def update_elo():
         user_vote=user_vote,
     )
     sb.table("users").update({"bias": new_bias}).eq("user_id", str(user_id)).execute()
+    
+    vote_resp = (
+        sb.table("swipes")
+        .select("id")
+        .eq("bill_id", bill_id)
+        .eq("user_id", str(user_id))
+        .execute()
+    )
 
-    return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo, "new_user_bias": new_bias})
+    votes = vote_resp.data or []
+
+    if len(votes) == 0:
+        insert_resp = sb.table("swipes").insert({
+            "bill_id": bill_id,
+            "user_id": user_id,
+            "agree": user_vote
+        }).execute()
+
+        return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo, "new_user_bias": new_bias})
+    else:
+        return jsonify({"error": "vote already cast"}), 403
+    
 
 
 @app.route("/match", methods=["POST"])

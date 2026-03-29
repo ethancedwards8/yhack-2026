@@ -7,49 +7,57 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 
 interface UserStateContextType {
   state: string;
+  /** True while fetching /me for the current session (or no session yet). */
+  isStateLoading: boolean;
 }
 
 const UserStateContext = createContext<UserStateContextType>({
   state: "",
+  isStateLoading: true,
 });
 
 export function UserStateProvider({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
   const [state, setState] = useState("");
+  const [isStateLoading, setIsStateLoading] = useState(true);
 
   useEffect(() => {
-    console.log("[UserStateContext] mounting, fetching session...");
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("[UserStateContext] session:", session ? `uid=${session.user.id}` : "null");
-      if (!session?.access_token) {
-        console.warn("[UserStateContext] no access token — user not logged in");
+    const supabase = createClient();
+
+    async function loadStateFromSession(accessToken: string | undefined) {
+      if (!accessToken) {
+        setState("");
+        setIsStateLoading(false);
         return;
       }
-      console.log("[UserStateContext] fetching GET /me from", BACKEND_URL);
-      fetch(`${BACKEND_URL}/me`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-        .then((r) => {
-          console.log("[UserStateContext] /me status:", r.status);
-          return r.json();
-        })
-        .then((profile) => {
-          console.log("[UserStateContext] /me profile:", profile);
-          if (profile?.state) {
-            console.log("[UserStateContext] setting state to:", profile.state);
-            setState(profile.state);
-          } else {
-            console.warn("[UserStateContext] profile has no state field:", profile);
-          }
-        })
-        .catch((err) => {
-          console.error("[UserStateContext] /me fetch error:", err);
+      setIsStateLoading(true);
+      try {
+        const r = await fetch(`${BACKEND_URL}/me`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
+        const profile = await r.json();
+        setState(typeof profile?.state === "string" ? profile.state : "");
+      } catch {
+        setState("");
+      } finally {
+        setIsStateLoading(false);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      void loadStateFromSession(session?.access_token);
     });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadStateFromSession(session?.access_token);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
-    <UserStateContext.Provider value={{ state }}>
+    <UserStateContext.Provider value={{ state, isStateLoading }}>
       {children}
     </UserStateContext.Provider>
   );
