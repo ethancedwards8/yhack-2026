@@ -115,7 +115,7 @@ def search():
     return jsonify(results)
 
 
-@app.route("/register_swipe")
+@app.route("/register_swipe", methods=["POST"])
 def register_swipe():
     sb = _get_supabase()
     data = request.get_json(silent=True) or {}
@@ -128,10 +128,9 @@ def register_swipe():
     
     try:
         bill_id = int(bill_id)
-        user_id = int(user_id)
         user_vote = int(user_vote)
     except (TypeError, ValueError):
-        return jsonify({"error": "bill_id, user_id, and user_vote must be integers"}), 400
+        return jsonify({"error": "bill_id and user_vote must be integers"}), 400
 
     bill = (
         sb.table("bills")
@@ -157,12 +156,11 @@ def register_swipe():
     
     vote = (
         sb.table("swipes")
-        .select("swipe_id")
+        .select("id")
         .eq("bill_id", bill_id)
         .eq("user_id", user_id)
-        .single()
+        .maybe_single()
         .execute()
-        .data
     )
     if vote:
         return jsonify({"error": "vote already cast???"}), 403
@@ -171,7 +169,9 @@ def register_swipe():
         "bill_id": bill_id,
         "user_id": user_id,
         "agree": 1
-    })
+    }).execute()
+    
+    return jsonify(), 200
     
 
 @app.route("/elo", methods=["POST"])
