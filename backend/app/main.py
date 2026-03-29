@@ -330,13 +330,16 @@ def update_elo():
 @app.route("/match", methods=["POST"])
 def get_match_users():
     sb = _get_supabase()
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(force=True, silent=True)
+    logger.info("/match raw body: %r", request.get_data(as_text=True))
+    logger.info("/match parsed data: %r", data)
+    data = data or {}
 
     user_id_raw = data.get("user_id")
     take_raw = data.get("take", 5)
 
     if user_id_raw is None:
-        return jsonify({"error": "user_id is required"}), 400
+        return jsonify({"error": "user_id is required", "received": data}), 400
 
     user_id = str(user_id_raw).strip()
     if not user_id:
