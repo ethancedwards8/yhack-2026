@@ -1,9 +1,9 @@
 create or replace function get_match_users(
-    p_user_id integer,
+    p_user_id uuid,
     p_take integer default 5
 )
 returns table (
-    user_id integer,
+    user_id uuid,
     bias real
 )
 language sql
