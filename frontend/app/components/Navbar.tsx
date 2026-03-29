@@ -51,32 +51,24 @@ export default function Navbar() {
   return (
     <header className="portalHeader" style={{ background: "transparent" }}>
       <nav className="y2kNav" style={{ background: "transparent" }}>
-        <div
-          className="y2kHeroWrap"
-          style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "1rem", width: "100%" }}
-        >
-          <div
-            className="y2kCenterHotbillsWrap"
-            style={{ background: "transparent", border: "none", flex: "0 0 220px" }}
-          >
+        <div className="y2kHeroWrap">
+          <div className="y2kCenterHotbillsWrap">
             <Image
               src="/images/hotbills.png"
               alt="HotBills logo"
               width={920}
               height={349}
               className="y2kCenterHotbillsImage"
-              style={{ background: "transparent", border: "none", width: "90%", height: "auto" }}
               priority
             />
           </div>
-          <div className="y2kLonelyReposWrap" style={{ flex: 0.3, minWidth: 0 }}>
+          <div className="y2kLonelyReposWrap">
             <Image
               src="/images/lonelyrepos.png"
               alt="Lonely repos banner"
               width={700}
               height={242}
               className="y2kLonelyReposImage"
-              style={{ width: "55%", height: "auto" }}
               priority
             />
           </div>
