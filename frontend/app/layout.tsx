@@ -10,9 +10,11 @@ export default function RootLayout({
   return (
     <UserStateProvider>
       <html lang="en">
-        <body style={{ margin: 0, fontFamily: "Arial, Helvetica, sans-serif" }}>
+        <body className="portalBody">
           <Navbar />
-          <main style={{ padding: "24px" }}>{children}</main>
+          <main className="portalMain">
+            <div className="portalContentFrame">{children}</div>
+          </main>
         </body>
       </html>
     </UserStateProvider>

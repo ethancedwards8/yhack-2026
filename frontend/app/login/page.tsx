@@ -44,6 +44,7 @@ export default function LoginPage() {
         setError(signUpError.message);
         return;
       }
+      window.location.href = "/";
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,

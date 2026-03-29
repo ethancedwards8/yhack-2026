@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserState } from "../context/UserStateContext";
@@ -48,88 +49,62 @@ export default function Navbar() {
   };
 
   return (
-    <nav style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "12px 24px",
-      borderBottom: "1px solid #333",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        <a href="/" style={{ fontWeight: 700, fontSize: "1.1rem" }}>
-          BillRank
-        </a>
-        {user && (
-          <>
-            <a href="/match" style={{ fontSize: "0.875rem", opacity: 0.75 }}>Find Match</a>
-            <a href="/votes" style={{ fontSize: "0.875rem", opacity: 0.75 }}>My Votes</a>
-          </>
-        )}
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {user ? (
-          <span
-            style={{
-              fontSize: "0.8125rem",
-              color: "var(--muted-text)",
-              padding: "4px 10px",
-              borderRadius: "6px",
-              border: "1px solid var(--card-border)",
-            }}
-            title="Your home state filters which bills appear in the deck."
+    <header className="portalHeader" style={{ background: "transparent" }}>
+      <nav className="y2kNav" style={{ background: "transparent" }}>
+        <div
+          className="y2kHeroWrap"
+          style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "1rem", width: "100%" }}
+        >
+          <div
+            className="y2kCenterHotbillsWrap"
+            style={{ background: "transparent", border: "none", flex: "0 0 220px" }}
           >
-            State:{" "}
-            <strong style={{ color: "var(--foreground)" }}>
-              {isStateLoading ? "…" : state || "—"}
-            </strong>
-          </span>
-        ) : null}
-        {loading ? (
-          <span style={{ fontSize: "0.875rem", opacity: 0.5 }}>...</span>
-        ) : user ? (
-          <>
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "0.875rem",
-            }}>
-              <span style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: "#22c55e",
-                display: "inline-block",
-              }} />
-              {user.user_metadata?.full_name || user.email}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                fontSize: "0.875rem",
-                opacity: 0.7,
-                textDecoration: "underline",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              Log out
-            </button>
-          </>
-        ) : (
-          <a href="/login" style={{
-            fontSize: "0.875rem",
-            padding: "6px 14px",
-            border: "1px solid #555",
-            borderRadius: "6px",
-          }}>
-            Log in
-          </a>
-        )}
-      </div>
-    </nav>
+            <Image
+              src="/images/hotbills.png"
+              alt="HotBills logo"
+              width={920}
+              height={349}
+              className="y2kCenterHotbillsImage"
+              style={{ background: "transparent", border: "none", width: "90%", height: "auto" }}
+              priority
+            />
+          </div>
+          <div className="y2kLonelyReposWrap" style={{ flex: 0.3, minWidth: 0 }}>
+            <Image
+              src="/images/lonelyrepos.png"
+              alt="Lonely repos banner"
+              width={700}
+              height={242}
+              className="y2kLonelyReposImage"
+              style={{ width: "55%", height: "auto" }}
+              priority
+            />
+          </div>
+        </div>
+
+        <div className="y2kNavRight">
+          {loading ? (
+            <span className="y2kGhostText">...</span>
+          ) : user ? (
+            <div className="y2kUserStack">
+              {state ? <span className="y2kStateBadge">State: {state}</span> : null}
+              <span className="y2kUserMeta">
+                User: {user.user_metadata?.full_name || "Authenticated user"}
+              </span>
+              <span className="y2kUserMeta">Email: {user.email}</span>
+              <a href="/match" className="y2kActionLink">Find Match</a>
+              <a href="/votes" className="y2kActionLink">My Votes</a>
+              <button onClick={handleLogout} className="y2kActionLink" type="button">
+                Log out
+              </button>
+            </div>
+          ) : (
+            <a href="/login" className="y2kActionLink">
+              Log in
+            </a>
+          )}
+        </div>
+      </nav>
+    </header>
   );
 }
