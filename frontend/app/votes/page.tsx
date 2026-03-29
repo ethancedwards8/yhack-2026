@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.hotbillsnearyou.com"
+const API_BASE_URL = "https://api.hotbillsnearyou.com"
 
 type VoteRecord = {
   bill_id: number

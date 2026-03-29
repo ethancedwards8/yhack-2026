@@ -558,9 +558,6 @@ def build_letter_pdf(letter_text: str) -> str:
 def send_fax():
     if request.method == "OPTIONS":
         return "", 204
-    time.sleep(1.7)
-    return jsonify([{"name": "Senator Murphy", "fax": "+18447159633", "status_code": 200, "response": {"status": "queued"}}])
-    sb = _get_supabase()
     sb = _get_supabase()
     data = request.get_json(silent=True) or {}
 

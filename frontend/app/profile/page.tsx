@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.hotbillsnearyou.com"
+const BACKEND_URL = "https://api.hotbillsnearyou.com"
 
 export default function ProfilePage() {
   const supabase = createClient()
