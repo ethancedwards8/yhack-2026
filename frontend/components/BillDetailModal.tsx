@@ -7,6 +7,8 @@ type BillDetailModalProps = {
   apiBaseUrl: string
   isOpen: boolean
   onClose: () => void
+  /** Direct PDF document URL from our database (LegiScan text metadata). */
+  storedPdfUrl?: string | null
 }
 
 type BillDetail = {
@@ -27,6 +29,7 @@ export default function BillDetailModal({
   apiBaseUrl,
   isOpen,
   onClose,
+  storedPdfUrl,
 }: BillDetailModalProps) {
   const [detail, setDetail] = useState<BillDetail | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -128,10 +131,20 @@ export default function BillDetailModal({
             {detail.description ? <p>{detail.description}</p> : null}
             {detail.status ? <p>Status: {detail.status}</p> : null}
             {detail.status_date ? <p>Status date: {detail.status_date}</p> : null}
-            {detail.url ? (
-              <a href={detail.url} rel="noreferrer" target="_blank">
-                Open source document
-              </a>
+            {storedPdfUrl || detail.url ? (
+              <p className="modalLinks">
+                {storedPdfUrl ? (
+                  <a href={storedPdfUrl} rel="noreferrer" target="_blank">
+                    Open PDF
+                  </a>
+                ) : null}
+                {storedPdfUrl && detail.url ? <span aria-hidden="true"> · </span> : null}
+                {detail.url ? (
+                  <a href={detail.url} rel="noreferrer" target="_blank">
+                    {storedPdfUrl ? "View on LegiScan" : "Open source document"}
+                  </a>
+                ) : null}
+              </p>
             ) : null}
           </div>
         ) : null}

@@ -11,6 +11,7 @@ export type BillSummary = {
   last_action?: string | null
   last_action_date?: string | null
   url?: string | null
+  pdf_url?: string | null
 }
 
 type BillCardProps = {

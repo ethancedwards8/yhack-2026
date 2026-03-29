@@ -64,6 +64,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
   const pointerMovedRef = useRef(false)
 
   const topBill = bills[currentIndex] ?? null
+  const detailBill =
+    detailBillId !== null ? bills.find((b) => b.bill_id === detailBillId) ?? null : null
   const nextCards = useMemo(
     () => bills.slice(currentIndex + 1, currentIndex + 3),
     [bills, currentIndex],
@@ -280,6 +282,7 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
         billId={detailBillId}
         isOpen={detailBillId !== null}
         onClose={() => setDetailBillId(null)}
+        storedPdfUrl={detailBill?.pdf_url ?? null}
       />
     </section>
   )
