@@ -15,7 +15,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null)
-  const [resetSent, setResetSent] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordSaving, setPasswordSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -72,17 +74,27 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleResetPassword() {
+  async function handleChangePassword() {
+    if (newPassword !== confirmPassword) {
+      setMessage({ text: "Passwords don't match.", error: true })
+      return
+    }
+    if (newPassword.length < 6) {
+      setMessage({ text: "Password must be at least 6 characters.", error: true })
+      return
+    }
+    setPasswordSaving(true)
     setMessage(null)
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/profile`,
-      })
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
-      setResetSent(true)
-      setMessage({ text: "Password reset email sent! Check your inbox.", error: false })
+      setNewPassword("")
+      setConfirmPassword("")
+      setMessage({ text: "Password updated!", error: false })
     } catch (e) {
-      setMessage({ text: e instanceof Error ? e.message : "Failed to send reset email", error: true })
+      setMessage({ text: e instanceof Error ? e.message : "Failed to update password", error: true })
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -281,7 +293,7 @@ export default function ProfilePage() {
         {saving ? "Saving..." : "Save Changes"}
       </button>
 
-      {/* Password reset */}
+      {/* Password change */}
       <div style={{
         padding: "16px 20px",
         borderRadius: 12,
@@ -289,24 +301,55 @@ export default function ProfilePage() {
         background: "var(--card-bg)",
         marginBottom: 16,
       }}>
-        <p style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 8px" }}>Password</p>
-        <p style={{ fontSize: "0.8rem", color: "var(--muted-text)", margin: "0 0 12px" }}>
-          We&apos;ll send a password reset link to {email}.
-        </p>
+        <p style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 12px" }}>Change Password</p>
+        <input
+          type="password"
+          placeholder="New password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px 14px",
+            fontSize: "0.9rem",
+            border: "1px solid #555",
+            borderRadius: 8,
+            background: "transparent",
+            color: "inherit",
+            boxSizing: "border-box",
+            marginBottom: 8,
+          }}
+        />
+        <input
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px 14px",
+            fontSize: "0.9rem",
+            border: "1px solid #555",
+            borderRadius: 8,
+            background: "transparent",
+            color: "inherit",
+            boxSizing: "border-box",
+            marginBottom: 12,
+          }}
+        />
         <button
-          onClick={handleResetPassword}
-          disabled={resetSent}
+          onClick={handleChangePassword}
+          disabled={passwordSaving || !newPassword}
           style={{
             padding: "8px 20px",
             fontSize: "0.85rem",
             border: "1px solid #555",
             borderRadius: 8,
             background: "transparent",
-            color: resetSent ? "#888" : "inherit",
-            cursor: resetSent ? "not-allowed" : "pointer",
+            color: (passwordSaving || !newPassword) ? "#888" : "inherit",
+            cursor: (passwordSaving || !newPassword) ? "not-allowed" : "pointer",
           }}
         >
-          {resetSent ? "Email sent" : "Reset Password"}
+          {passwordSaving ? "Updating..." : "Update Password"}
         </button>
       </div>
 
