@@ -3,6 +3,8 @@ import os
 import sys
 from functools import lru_cache
 from pathlib import Path
+import pandas as pd
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -477,6 +479,176 @@ def get_bill(bill_id):
 def get_legiscan_bill(bill_id):
     bill = legis.get_bill(bill_id)
     return jsonify(bill)
+
+import tempfile
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.enums import TA_JUSTIFY
+from google import genai
+from google.genai import types
+import re
+
+SINCH_SECRET=os.getenv("SINCH_SECRET")
+
+# Initialize client once at module level — picks up GEMINI_API_KEY from env
+_genai_client = genai.Client()
+
+def clean_number(num):
+    if not num or num == "Not Found":
+        return None
+    digits = re.sub(r"\D", "", str(num))
+    if not digits:
+        return None
+    return f"+1{digits}"
+
+def generate_opposition_letter(bill_description: str, reason: str, senator_name: str, full_text: str) -> str:
+    print("generating")
+    """Call Gemini 2.5 Flash to write a formal opposition letter."""
+    response = _genai_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=f"""Write a formal, professional letter from a concerned constituent to Senator {senator_name} 
+opposing a piece of legislation. The letter should:
+- Open with a formal salutation to Senator {senator_name}
+- Clearly state opposition to the bill
+- Reference the bill's subject matter and why it is harmful
+- Include the constituent's reason for opposition
+- Close with a respectful call to action urging a NO vote
+- End with "Sincerely," followed by signing off with "A Concerned Citizen".
+- DO NOT leave any placeholders, disregard common fields if not provided with explicit information (like address). 
+
+Bill description: {bill_description}
+Constituent's reason for opposition: {reason}
+Bill full text: {full_text}
+
+Return only the letter text, no extra commentary.""",
+        config=types.GenerateContentConfig(
+            max_output_tokens=50000,
+            temperature=0.4,
+        ),
+    )
+    return response.text
+
+
+
+def build_letter_pdf(letter_text: str) -> str:
+    """Render letter_text into a temp PDF. Returns the temp file path."""
+    tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
+    tmp.close()
+
+    doc = SimpleDocTemplate(
+        tmp.name,
+        pagesize=letter,
+        leftMargin=1.25 * inch,
+        rightMargin=1.25 * inch,
+        topMargin=1.5 * inch,
+        bottomMargin=1.5 * inch,
+    )
+
+    styles = getSampleStyleSheet()
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=16,
+        alignment=TA_JUSTIFY,
+        spaceAfter=10,
+    )
+
+    story = []
+    for para in letter_text.strip().split("\n\n"):
+        cleaned = para.strip().replace("\n", " ")
+        if cleaned:
+            story.append(Paragraph(cleaned, body_style))
+            story.append(Spacer(1, 0.1 * inch))
+
+    doc.build(story)
+    return tmp.name
+
+
+@app.route("/fax", methods=["POST"])
+def send_fax():
+    sb = _get_supabase()
+    data = request.get_json(silent=True) or {}
+
+    bill_id = data.get("bill_id")
+    state   = data.get("state")
+    reason  = data.get("reason")
+
+    if not state:
+        return jsonify({"error": "state required"}), 400
+    if not bill_id:
+        return jsonify({"error": "bill_id required"}), 400
+    if not reason:
+        return jsonify({"error": "reason required"}), 400
+
+    # Fetch bill description from Supabase
+    bill_resp = (
+        sb.table("bills")
+        .select("description,text")
+        .eq("bill_id", bill_id)
+        .limit(1)
+        .execute()
+    )
+    bill_description = (
+        bill_resp.data[0]["description"] if bill_resp.data else "Unknown legislation"
+    )
+    bill_text = (
+        bill_resp.data[0]["text"] if bill_resp.data else "Unknown legislation"
+    )
+
+    # Load and filter senators CSV
+    df = pd.read_csv(str(Path(__file__).parent / "senators.csv"), header=None, names=["state", "name", "party", "fax"])
+    senators = df[df["state"].str.lower() == state.lower()]
+
+    if senators.empty:
+        return jsonify({"error": "No senators found"}), 404
+
+    results = []
+
+    for _, row in senators.iterrows():
+        fax_number = clean_number(row["fax"])
+        if not fax_number:
+            continue
+
+        pdf_path = None
+        try:
+            letter_text = generate_opposition_letter(bill_description, reason, row["name"], bill_text)
+            pdf_path = build_letter_pdf(letter_text)
+
+            with open(pdf_path, "rb") as pdf_file:
+                project_id = "6ecab141-9597-420a-84a7-3b480b43a8a2"
+                url = "https://fax.api.sinch.com/v3/projects/" + project_id + "/faxes"
+
+                response = requests.post(
+                    url,
+                    files={"file": ("letter.pdf", pdf_file, "application/pdf")},
+                    data={"to": "+18447159633"},
+                    auth=('fedd7e2d-1729-47c5-90de-9ec5d5878cad', SINCH_SECRET)
+                )
+
+            fax_result = response.json()
+
+            results.append({
+                "name": row["name"],
+                "fax": fax_number,
+                "status_code": response.status_code,  # from response object
+                "response": fax_result,               # the parsed JSON
+            })
+
+        except Exception as e:
+            results.append({
+                "name": row["name"],
+                "fax": fax_number,
+                "error": str(e),
+            })
+
+        finally:
+            if pdf_path and os.path.exists(pdf_path):
+                os.unlink(pdf_path)
+
+    return jsonify(results)
 
 
 if __name__ == "__main__":
