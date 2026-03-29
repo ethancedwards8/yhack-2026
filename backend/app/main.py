@@ -10,11 +10,7 @@ if str(_backend_root) not in sys.path:
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
 from flask_cors import CORS
-<<<<<<< HEAD
-from supabase import Client, create_client
-=======
-from supabase import create_client
->>>>>>> ef05fa65e2960598fe51c4f0d675b3639e27d95b
+from supabase import create_client, Client
 
 from app.auth import require_auth
 from app.legiscan import LegiScan
@@ -131,7 +127,6 @@ def get_user(user_id):
 
 @app.route("/bill/<int:bill_id>")
 def get_bill(bill_id):
-<<<<<<< HEAD
     try:
         sb = _get_supabase()
         result = sb.table("bills").select("*").eq("bill_id", bill_id).limit(1).execute()
@@ -175,8 +170,3 @@ if __name__ == "__main__":
         port=int(os.getenv("FLASK_PORT", "8000")),
         debug=os.getenv("FLASK_DEBUG", "false").strip().lower() == "true",
     )
-=======
-    sb = _get_supabase()
-    result = sb.table("bills").select("*").eq("bill_id", bill_id).single().execute()
-    return jsonify(result.data)
->>>>>>> ef05fa65e2960598fe51c4f0d675b3639e27d95b
