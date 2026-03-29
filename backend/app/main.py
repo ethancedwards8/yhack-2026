@@ -258,6 +258,44 @@ def update_elo():
 
     return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo, "new_user_bias": new_bias})
 
+
+@app.route("/match", methods=["POST"])
+def get_match_users():
+    sb = _get_supabase()
+    data = request.get_json(silent=True) or {}
+
+    user_id_raw = data.get("user_id")
+    take_raw = data.get("take", 5)
+
+    if user_id_raw is None:
+        return jsonify({"error": "user_id is required"}), 400
+
+    try:
+        user_id = int(user_id_raw)
+        take = int(take_raw)
+    except (TypeError, ValueError):
+        return jsonify({"error": "user_id and take must be integers"}), 400
+
+    try:
+        rpc_result = (
+            sb.rpc(
+                "get_match_users",
+                {
+                    "p_user_id": user_id,
+                    "p_take": take,
+                },
+            )
+            .execute()
+        )
+    except Exception as exc:
+        return jsonify({"error": "failed to fetch matches", "details": str(exc)}), 500
+
+    return jsonify({
+        "user_id": user_id,
+        "take": take,
+        "matches": rpc_result.data or [],
+    })
+
 @app.route("/user/<user_id>")
 def get_user(user_id):
     try:
