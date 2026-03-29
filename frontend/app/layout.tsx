@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import "@/styles/globals.css"
 import Navbar from "./components/Navbar";
 import VerticalImageRail from "@/app/components/VerticalImageRail";
