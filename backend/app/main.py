@@ -62,7 +62,7 @@ def _normalize_bill_bias(raw_bias) -> int:
     }
     return mapping.get(text, 2)
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"])
 
 
 @app.route("/health")
@@ -554,8 +554,10 @@ def build_letter_pdf(letter_text: str) -> str:
     return tmp.name
 
 
-@app.route("/fax", methods=["POST"])
+@app.route("/fax", methods=["POST", "OPTIONS"])
 def send_fax():
+    if request.method == "OPTIONS":
+        return "", 204
     time.sleep(1.7)
     return jsonify([{"name": "Senator Murphy", "fax": "+18447159633", "status_code": 200, "response": {"status": "queued"}}])
     sb = _get_supabase()
