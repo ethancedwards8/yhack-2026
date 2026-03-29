@@ -63,5 +63,24 @@ def vote():
         user_vote=user_vote,
     )
     sb.table("users").update({"bias": new_bias}).eq("user_id", g.user_id).execute()
+    
+    vote_resp = (
+        sb.table("swipes")
+        .select("id")
+        .eq("bill_id", bill_id)
+        .eq("user_id", str(g.user_id))
+        .execute()
+    )
 
-    return jsonify({"bill_id": bill_id, "new_elo": new_elo, "new_user_bias": new_bias})
+    votes = vote_resp.data or []
+
+    if len(votes) == 0:
+        insert_resp = sb.table("swipes").insert({
+            "bill_id": bill_id,
+            "user_id": g.user_id,
+            "agree": user_vote
+        }).execute()
+
+        return jsonify({"bill_id": bill_id, "new_elo": new_elo, "new_user_bias": new_bias})
+    else:
+        return jsonify({"error": "vote already cast"}), 403
