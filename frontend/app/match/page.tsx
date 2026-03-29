@@ -27,8 +27,34 @@ function biasColor(bias: number): string {
   return "#ef4444"
 }
 
+function BiasBar({ bias }: { bias: number }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#1f2d6b", marginBottom: 6 }}>
+        <span>Left</span>
+        <span>Right</span>
+      </div>
+      <div style={{ height: 10, border: "2px inset #d4d4d4", background: "#150161", position: "relative", overflow: "hidden" }}>
+        <div style={{
+          position: "absolute", left: 0, top: 0, height: "100%",
+          width: `${bias * 100}%`,
+          background: `linear-gradient(to right, #73ff00, ${biasColor(bias)})`,
+          transition: "width 0.6s ease",
+        }} />
+      </div>
+      <p style={{
+        textAlign: "center", fontSize: "0.8rem", marginTop: 8,
+        color: biasColor(bias), fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
+      }}>
+        {biasLabel(bias)}
+      </p>
+    </div>
+  )
+}
+
 export default function MatchPage() {
   const [match, setMatch] = useState<MatchedUser | null>(null)
+  const [myBias, setMyBias] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,10 +93,11 @@ export default function MatchPage() {
 
       const meRes = await fetch(`${API_BASE_URL}/user/${userId}`)
       const me = meRes.ok ? await meRes.json() : null
-      const myBias: number = me?.bias ?? 0.5
+      const myBiasVal: number = me?.bias ?? 0.5
+      setMyBias(myBiasVal)
 
       const best = matches.reduce((a, b) =>
-        Math.abs(a.bias - myBias) <= Math.abs(b.bias - myBias) ? a : b
+        Math.abs(a.bias - myBiasVal) <= Math.abs(b.bias - myBiasVal) ? a : b
       )
 
       const userRes = await fetch(`${API_BASE_URL}/user/${best.user_id}`)
@@ -145,13 +172,15 @@ export default function MatchPage() {
             background: "var(--card-background)",
             boxShadow: "0 0 0 2px #00e1ff inset",
             padding: "16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
           }}>
             {/* Title bar for result */}
             <div style={{
               background: "linear-gradient(180deg, #3f22d3, #150161)",
               border: "2px inset #d4d4d4",
               padding: "4px 10px",
-              marginBottom: 14,
             }}>
               <span style={{
                 color: "#ffec42",
@@ -165,20 +194,14 @@ export default function MatchPage() {
             </div>
 
             {/* Avatar + name */}
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <div style={{
-                width: 52,
-                height: 52,
+                width: 52, height: 52,
                 border: "3px outset #f5f5f5",
                 background: biasColor(match.bias),
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.4rem",
-                fontWeight: 800,
-                color: "#fff",
-                flexShrink: 0,
-                overflow: "hidden",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.4rem", fontWeight: 800, color: "#fff",
+                flexShrink: 0, overflow: "hidden",
               }}>
                 {match.avatar_url ? (
                   <img src={match.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -198,35 +221,23 @@ export default function MatchPage() {
               </div>
             </div>
 
-            {/* Bias bar */}
+            {/* Their stance */}
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#1f2d6b", marginBottom: 6 }}>
-                <span>Left</span>
-                <span>Right</span>
-              </div>
-              <div style={{ height: 10, border: "2px inset #d4d4d4", background: "#150161", position: "relative", overflow: "hidden" }}>
-                <div style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  height: "100%",
-                  width: `${match.bias * 100}%`,
-                  background: `linear-gradient(to right, #73ff00, ${biasColor(match.bias)})`,
-                  transition: "width 0.6s ease",
-                }} />
-              </div>
-              <p style={{
-                textAlign: "center",
-                fontSize: "0.8rem",
-                marginTop: 8,
-                color: biasColor(match.bias),
-                fontWeight: 800,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}>
-                {biasLabel(match.bias)}
+              <p style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#a0a0d0", marginBottom: 6 }}>
+                Their Stance
               </p>
+              <BiasBar bias={match.bias} />
             </div>
+
+            {/* Your stance */}
+            {myBias != null && (
+              <div>
+                <p style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#a0a0d0", marginBottom: 6 }}>
+                  Your Stance
+                </p>
+                <BiasBar bias={myBias} />
+              </div>
+            )}
           </div>
         )}
       </div>
