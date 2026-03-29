@@ -3,10 +3,10 @@ import os
 from flask import Blueprint, jsonify, request, g
 from supabase import create_client
 
-from app.algorithm import elo_alg
+from app.algorithm import elo_alg, user_bias_alg
+from app.auth import require_auth
 
 logger = logging.getLogger(__name__)
-from app.auth import require_auth
 
 votes_bp = Blueprint("votes", __name__, url_prefix="/vote")
 
@@ -56,4 +56,11 @@ def vote():
 
     sb.table("bills").update({"bill_elo": new_elo}).eq("bill_id", bill_id).execute()
 
-    return jsonify({"bill_id": bill_id, "new_elo": new_elo})
+    new_bias = user_bias_alg(
+        user_bias=user["bias"],
+        bill_bias=bill_bias,
+        user_vote=user_vote,
+    )
+    sb.table("users").update({"bias": new_bias}).eq("user_id", g.user_id).execute()
+
+    return jsonify({"bill_id": bill_id, "new_elo": new_elo, "new_user_bias": new_bias})
