@@ -142,7 +142,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", color: "var(--muted-text)" }}>
+      <div className="profileStatus profileStatusMuted">
         Loading profile...
       </div>
     )
@@ -150,220 +150,123 @@ export default function ProfilePage() {
 
   if (!userId) {
     return (
-      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
+      <div className="profileStatus">
         <p>You must be logged in to view your profile.</p>
-        <a href="/login" style={{ color: "#2563eb" }}>Log in</a>
+        <a href="/login" className="y2kActionLink">Log in</a>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "40px auto" }}>
-      <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 32 }}>Profile</h1>
+    <div className="profilePage">
+      <h1 className="profileTitle">Profile</h1>
 
-      {/* Avatar */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 32 }}>
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: "50%",
-            overflow: "hidden",
-            background: "#333",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            border: "3px solid var(--card-border)",
-            position: "relative",
-          }}
-        >
+      <div className="profilePanel">
+        <div className="profileAvatarSection">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="profileAvatarBox"
+            type="button"
+          >
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt="Avatar"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              className="profileAvatarImage"
             />
           ) : (
-            <span style={{ fontSize: "2.5rem", fontWeight: 700, color: "#888" }}>
+            <span className="profileAvatarInitial">
               {(name || email || "?")[0].toUpperCase()}
             </span>
           )}
           {uploading && (
-            <div style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: "0.75rem",
-            }}>
+            <div className="profileAvatarOverlay">
               Uploading...
             </div>
           )}
-        </div>
+          </button>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleAvatarUpload}
-          style={{ display: "none" }}
+          className="profileFileInput"
         />
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          style={{
-            marginTop: 10,
-            fontSize: "0.8rem",
-            background: "none",
-            border: "none",
-            color: "#2563eb",
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
+          className="profileLinkButton"
+          type="button"
         >
           {uploading ? "Uploading..." : "Change avatar"}
         </button>
       </div>
 
-      {/* Name */}
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--muted-text)", marginBottom: 6 }}>
+      <div className="profileField">
+        <label className="profileLabel">
           Display Name
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            fontSize: "1rem",
-            border: "1px solid #555",
-            borderRadius: 8,
-            background: "transparent",
-            color: "inherit",
-            boxSizing: "border-box",
-          }}
+          className="profileInput"
         />
       </div>
 
-      {/* Email (read-only) */}
-      <div style={{ marginBottom: 24 }}>
-        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--muted-text)", marginBottom: 6 }}>
+      <div className="profileField">
+        <label className="profileLabel">
           Email
         </label>
         <input
           type="email"
           value={email}
           disabled
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            fontSize: "1rem",
-            border: "1px solid #444",
-            borderRadius: 8,
-            background: "#1a1a1a",
-            color: "#888",
-            boxSizing: "border-box",
-          }}
+          className="profileInput profileInputDisabled"
         />
       </div>
 
-      {/* Save button */}
       <button
         onClick={handleSave}
         disabled={saving}
-        style={{
-          width: "100%",
-          padding: "10px 14px",
-          fontSize: "1rem",
-          fontWeight: 600,
-          border: "none",
-          borderRadius: 8,
-          background: saving ? "#444" : "#2563eb",
-          color: "#fff",
-          cursor: saving ? "not-allowed" : "pointer",
-          marginBottom: 16,
-        }}
+        className="profilePrimaryButton"
+        type="button"
       >
         {saving ? "Saving..." : "Save Changes"}
       </button>
 
-      {/* Password change */}
-      <div style={{
-        padding: "16px 20px",
-        borderRadius: 12,
-        border: "1px solid var(--card-border)",
-        background: "var(--card-bg)",
-        marginBottom: 16,
-      }}>
-        <p style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 12px" }}>Change Password</p>
+      <div className="profilePasswordCard">
+        <p className="profileSectionTitle">Change Password</p>
         <input
           type="password"
           placeholder="New password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            fontSize: "0.9rem",
-            border: "1px solid #555",
-            borderRadius: 8,
-            background: "transparent",
-            color: "inherit",
-            boxSizing: "border-box",
-            marginBottom: 8,
-          }}
+          className="profileInput"
         />
         <input
           type="password"
           placeholder="Confirm new password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            fontSize: "0.9rem",
-            border: "1px solid #555",
-            borderRadius: 8,
-            background: "transparent",
-            color: "inherit",
-            boxSizing: "border-box",
-            marginBottom: 12,
-          }}
+          className="profileInput"
         />
         <button
           onClick={handleChangePassword}
           disabled={passwordSaving || !newPassword}
-          style={{
-            padding: "8px 20px",
-            fontSize: "0.85rem",
-            border: "1px solid #555",
-            borderRadius: 8,
-            background: "transparent",
-            color: (passwordSaving || !newPassword) ? "#888" : "inherit",
-            cursor: (passwordSaving || !newPassword) ? "not-allowed" : "pointer",
-          }}
+          className="profileSecondaryButton"
+          type="button"
         >
           {passwordSaving ? "Updating..." : "Update Password"}
         </button>
       </div>
 
-      {/* Message */}
       {message && (
-        <p style={{
-          textAlign: "center",
-          fontSize: "0.85rem",
-          marginTop: 12,
-          color: message.error ? "#f87171" : "#4ade80",
-        }}>
+        <p className={`profileMessage ${message.error ? "profileMessageError" : "profileMessageSuccess"}`}>
           {message.text}
         </p>
       )}
+      </div>
     </div>
   )
 }

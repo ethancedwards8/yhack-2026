@@ -24,6 +24,22 @@ const SWIPE_DISTANCE_THRESHOLD = 120
 const SWIPE_VELOCITY_THRESHOLD = 700
 const TAP_DISTANCE_THRESHOLD = 8
 
+function getStackCardOffset(billId: number, depth: number) {
+  // Deterministic jitter: random-looking stack that stays stable across rerenders.
+  const seed = billId * 9301 + depth * 49297
+  const rand01 = (value: number) => {
+    const x = Math.sin(value) * 10000
+    return x - Math.floor(x)
+  }
+
+  const x = Math.round((rand01(seed) - 0.5) * 14)
+  const y = depth * 10 + Math.round(rand01(seed + 1) * 6)
+  const rotate = (rand01(seed + 2) - 0.5) * 4
+  const scale = 1 - depth * 0.03
+
+  return { x, y, rotate, scale }
+}
+
 function parseBillSummaries(payload: unknown): BillSummary[] {
   if (!Array.isArray(payload)) {
     return []
@@ -204,17 +220,25 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
       </header>
 
       <div className="deckStage" aria-live="polite">
-        {nextCards.map((bill, index) => (
-          <div
-            className="stackCard"
-            key={bill.bill_id}
-            style={{
-              transform: `translateY(${(index + 1) * 10}px) scale(${1 - (index + 1) * 0.03})`,
-            }}
-          >
-            <BillCard bill={bill} isTopCard={false} />
-          </div>
-        ))}
+        {nextCards.map((bill, index) => {
+          const depth = index + 1
+          const offset = getStackCardOffset(bill.bill_id, depth)
+          return (
+            <div
+              className="stackCard"
+              key={bill.bill_id}
+              style={{
+                transform:
+                  `translate(${offset.x}px, ${offset.y}px) ` +
+                  `rotate(${offset.rotate.toFixed(2)}deg) scale(${offset.scale})`,
+                pointerEvents: "none",
+                zIndex: 1,
+              }}
+            >
+              <BillCard bill={bill} isTopCard={false} />
+            </div>
+          )
+        })}
 
         <AnimatePresence>
           <motion.div
@@ -262,7 +286,7 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
                 })
               }
             }}
-            style={{ touchAction: "pan-y" }}
+            style={{ touchAction: "pan-y", zIndex: 2 }}
           >
             <BillCard bill={topBill} isTopCard />
           </motion.div>

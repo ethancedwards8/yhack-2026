@@ -108,7 +108,7 @@ export default function Navbar() {
               <a href="/match" className="y2kActionLink">Find Match</a>
               <a href="/votes" className="y2kActionLink">My Votes</a>
               <button onClick={handleLogout} className="y2kActionLink" type="button">
-                Log out
+                Log Out
               </button>
             </div>
           ) : (

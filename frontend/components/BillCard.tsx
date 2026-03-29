@@ -43,13 +43,6 @@ export default function BillCard({ bill, isTopCard }: BillCardProps) {
 
       <p className="billSummary">{truncateText(bill.description, SUMMARY_LIMIT)}</p>
 
-      <footer className="billFooter">
-        <span className="pill">{bill.party ?? "Unknown party"}</span>
-        {typeof bill.bill_elo === "number" ? (
-          <span className="pill">ELO {bill.bill_elo}</span>
-        ) : null}
-        {bill.last_action_date ? <span className="pill">{bill.last_action_date}</span> : null}
-      </footer>
     </article>
   )
 }

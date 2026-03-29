@@ -68,7 +68,7 @@ export default function VotesPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 640, margin: "60px auto", textAlign: "center", color: "var(--muted-text)" }}>
+      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 12px", textAlign: "center", color: "var(--muted-text)" }}>
         Loading your votes…
       </div>
     )
@@ -76,14 +76,14 @@ export default function VotesPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 640, margin: "60px auto", textAlign: "center", color: "#f87171" }}>
+      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 12px", textAlign: "center", color: "#f87171" }}>
         {error}
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 0", minHeight: "100%", background: "#08081f" }}>
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 12px", minHeight: "100%", background: "#08081f", boxSizing: "border-box" }}>
       <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", textShadow: "0 0 8px #00dcff" }}>My Votes</h1>
       <p style={{ marginBottom: 24 }}>
         {votes.length} bill{votes.length !== 1 ? "s" : ""} swiped —{" "}

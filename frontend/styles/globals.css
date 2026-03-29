@@ -22,7 +22,7 @@ body {
 body {
   color: var(--foreground);
   background: #5748db;
-  font-family: "Trebuchet MS", Tahoma, Verdana, Arial, sans-serif;
+  font-family: "Comic Sans MS", "Comic Sans", cursive;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -208,13 +208,231 @@ body {
   color: #2b0f00;
   font-weight: 700;
   font-size: 0.8rem;
+  line-height: 1;
+  font-family: inherit;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
 }
 
+button.y2kActionLink {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
 .y2kActionLink:hover {
   filter: saturate(1.25) brightness(1.05);
+}
+
+.profilePage,
+.profilePage * {
+  font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+
+.profilePage {
+  width: min(560px, 100%);
+  margin: 20px auto;
+}
+
+.profileTitle {
+  margin: 0 0 14px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff1a9;
+  text-shadow: 1px 1px 0 #0d0659;
+}
+
+.profilePanel {
+  border: 3px ridge #ffe300;
+  padding: 14px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.06) 0 8px,
+      rgba(255, 0, 255, 0.09) 8px 16px
+    ),
+    #08081f;
+  box-shadow:
+    0 0 0 2px #0026ff,
+    0 0 0 2px #ff45ff inset;
+}
+
+.profileAvatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profileAvatarBox {
+  width: 112px;
+  height: 112px;
+  border: 3px outset #e6e6e6;
+  background: #12004a;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  border-radius: 0;
+  padding: 0;
+}
+
+.profileAvatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileAvatarInitial {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #d7d7ff;
+}
+
+.profileAvatarOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileFileInput {
+  display: none;
+}
+
+.profileLinkButton {
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: 2px outset #f5f5f5;
+  background: linear-gradient(180deg, #ffe24e, #ffab09);
+  color: #2b0f00;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.profileField {
+  margin-bottom: 12px;
+}
+
+.profileLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: #d8cbff;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.profileInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 2px inset #d4d4d4;
+  background: #150161;
+  color: #ffffff;
+  font-size: 0.95rem;
+  border-radius: 0;
+}
+
+.profileInputDisabled {
+  background: #0e0142;
+  color: #aab0d1;
+}
+
+.profilePrimaryButton {
+  width: 100%;
+  margin: 2px 0 12px;
+  padding: 8px 10px;
+  border: 2px outset #f5f5f5;
+  background: linear-gradient(180deg, #1ce6ff, #0084ff 55%, #0645df);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.profilePrimaryButton:disabled {
+  background: #2e3f88;
+  cursor: not-allowed;
+}
+
+.profilePasswordCard {
+  border: 3px groove #ffe152;
+  background: #10034f;
+  padding: 12px;
+  margin-top: 6px;
+}
+
+.profileSectionTitle {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: #fff1a9;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profilePasswordCard .profileInput {
+  margin-bottom: 8px;
+}
+
+.profileSecondaryButton {
+  padding: 7px 16px;
+  border: 2px outset #f5f5f5;
+  background: linear-gradient(180deg, #ffe24e, #ffab09);
+  color: #2b0f00;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.profileSecondaryButton:disabled {
+  background: #6d5f26;
+  color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.profileMessage {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.profileMessageSuccess {
+  color: #62f28d;
+}
+
+.profileMessageError {
+  color: #ff7f9a;
+}
+
+.profileStatus {
+  width: min(560px, 100%);
+  margin: 50px auto;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+}
+
+.profileStatusMuted {
+  color: #d8cbff;
 }
 
 .appBody {

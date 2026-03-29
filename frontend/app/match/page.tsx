@@ -201,8 +201,8 @@ export default function MatchPage() {
             {/* Bias bar */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#1f2d6b", marginBottom: 6 }}>
-                <span>Democrat</span>
-                <span>Republican</span>
+                <span>Left</span>
+                <span>Right</span>
               </div>
               <div style={{ height: 10, border: "2px inset #d4d4d4", background: "#150161", position: "relative", overflow: "hidden" }}>
                 <div style={{
