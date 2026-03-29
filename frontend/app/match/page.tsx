@@ -10,6 +10,7 @@ type MatchedUser = {
   name: string | null
   email: string | null
   bias: number
+  avatar_url: string | null
 }
 
 function biasLabel(bias: number): string {
@@ -148,9 +149,18 @@ export default function MatchPage() {
                 fontWeight: 700,
                 color: "#fff",
                 flexShrink: 0,
+                overflow: "hidden",
               }}
             >
-              {(match.name || match.email || "?")[0].toUpperCase()}
+              {match.avatar_url ? (
+                <img
+                  src={match.avatar_url}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                (match.name || match.email || "?")[0].toUpperCase()
+              )}
             </div>
             <div>
               <p style={{ fontWeight: 600, fontSize: "1.05rem", margin: 0 }}>

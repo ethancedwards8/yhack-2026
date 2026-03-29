@@ -92,6 +92,7 @@ export default function Navbar() {
                 User: {user.user_metadata?.full_name || "Authenticated user"}
               </span>
               <span className="y2kUserMeta">Email: {user.email}</span>
+              <a href="/profile" className="y2kActionLink">Profile</a>
               <a href="/match" className="y2kActionLink">Find Match</a>
               <a href="/votes" className="y2kActionLink">My Votes</a>
               <button onClick={handleLogout} className="y2kActionLink" type="button">
