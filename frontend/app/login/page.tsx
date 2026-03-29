@@ -10,7 +10,8 @@ const PDF_STATES = [
   // "IN","KS","KY","LA","MA","MD","ME","MN","MO","MS",
   // "MT","NC","ND","NE","NJ","NM","NV","OH","OK","OR",
   // "PA","RI","SD","TN","US","UT","VA","VT","WA","WI","WY",
- "MA", "CT", "MD", "RI"
+ // "MA", "CT", "MD", "RI"
+"CT",
 ];
 
 export default function LoginPage() {
