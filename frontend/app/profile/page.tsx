@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
-const BACKEND_URL = "https://api.hotbillsnearyou.com"
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.hotbillsnearyou.com"
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [bias, setBias] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null)
@@ -40,6 +41,7 @@ export default function ProfilePage() {
           const profile = await res.json()
           setName(profile.name ?? "")
           setAvatarUrl(profile.avatar_url ?? null)
+          if (profile.bias != null) setBias(parseFloat(profile.bias))
         }
       } catch {
         // ignore
@@ -225,6 +227,30 @@ export default function ProfilePage() {
           className="profileInput profileInputDisabled"
         />
       </div>
+
+      {bias != null && (
+        <div className="profileField">
+          <label className="profileLabel">Political Stance</label>
+          <div style={{ marginTop: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#a0a0d0", marginBottom: 6 }}>
+              <span>Left</span>
+              <span>Right</span>
+            </div>
+            <div style={{ height: 10, border: "2px inset #d4d4d4", background: "#150161", position: "relative", overflow: "hidden" }}>
+              <div style={{
+                position: "absolute", left: 0, top: 0, height: "100%",
+                width: `${bias * 100}%`,
+                background: bias < 0.4 ? "linear-gradient(to right, #73ff00, #9eff01)" : bias < 0.6 ? "linear-gradient(to right, #73ff00, #ff4400)" : "linear-gradient(to right, #73ff00, #ef4444)",
+                transition: "width 0.6s ease",
+              }} />
+            </div>
+            <p style={{ textAlign: "center", fontSize: "0.8rem", marginTop: 8, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
+              color: bias < 0.4 ? "#9eff01" : bias < 0.6 ? "#ff4400" : "#ef4444" }}>
+              {bias < 0.2 ? "Strong Democrat" : bias < 0.4 ? "Leaning Democrat" : bias < 0.6 ? "Neutral" : bias < 0.8 ? "Leaning Republican" : "Strong Republican"}
+            </p>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={handleSave}
