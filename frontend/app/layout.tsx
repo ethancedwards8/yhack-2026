@@ -1,3 +1,4 @@
+import "@/styles/globals.css"
 import Navbar from "./components/Navbar";
 import { UserStateProvider } from "./context/UserStateContext";
 
