@@ -4,8 +4,7 @@ import Image from "next/image"
 import BillSwipeDeck from "@/components/BillSwipeDeck"
 import { useUserState } from "./context/UserStateContext"
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000"
+const API_BASE_URL = "https://api.hotbillsnearyou.com"
 
 export default function Page() {
   const { state, isStateLoading } = useUserState()

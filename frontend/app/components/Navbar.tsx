@@ -7,7 +7,7 @@ import HorizontalAdRail from "./HorizontalAdRail";
 import { useUserState } from "../context/UserStateContext";
 import type { User } from "@supabase/supabase-js";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = "https://api.hotbillsnearyou.com";
 
 export default function Navbar() {
   const supabase = createClient();
