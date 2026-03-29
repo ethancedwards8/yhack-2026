@@ -134,7 +134,7 @@ def me_votes():
 @require_auth
 def update_me():
     data = request.get_json(silent=True) or {}
-    allowed = {k: v for k, v in data.items() if k in ("state", "bias")}
+    allowed = {k: v for k, v in data.items() if k in ("state", "bias", "name", "avatar_url")}
     if not allowed:
         return jsonify({"error": "no valid fields to update"}), 400
     sb = _get_supabase()
@@ -411,7 +411,7 @@ def get_user(user_id):
         sb = _get_supabase()
         result = (
             sb.table("users")
-            .select("user_id,bias,name,email")
+            .select("user_id,bias,name,email,avatar_url")
             .eq("user_id", str(user_id))
             .limit(1)
             .execute()
@@ -432,6 +432,7 @@ def get_user(user_id):
             "name": row.get("name"),
             "email": row.get("email"),
             "bias": user_bias,
+            "avatar_url": row.get("avatar_url"),
         }
     )
 

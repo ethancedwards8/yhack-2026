@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserState } from "../context/UserStateContext";
 import type { User } from "@supabase/supabase-js";
@@ -10,37 +10,52 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 
 export default function Navbar() {
   const supabase = createClient();
-  const { state, isStateLoading } = useUserState();
+  const { state } = useUserState();
   const [user, setUser] = useState<User | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const synced = useRef(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+
+      if (session?.access_token) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/me`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (res.ok) {
+            const profile = await res.json();
+            setDisplayName(profile.name || "");
+          }
+        } catch { /* ignore */ }
+      }
       setLoading(false);
-    });
+    }
+    void init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setUser(session?.user ?? null);
+        if (session?.access_token) {
+          try {
+            const res = await fetch(`${BACKEND_URL}/me`, {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+              const profile = await res.json();
+              setDisplayName(profile.name || "");
+            }
+          } catch { /* ignore */ }
+        } else {
+          setDisplayName("");
+        }
       },
     );
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // Sync user to backend on first login
-  useEffect(() => {
-    if (!user || synced.current) return;
-    synced.current = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.access_token) return;
-      fetch(`${BACKEND_URL}/me`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      }).catch(() => {});
-    });
-  }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -51,7 +66,7 @@ export default function Navbar() {
   return (
     <header className="portalHeader" style={{ background: "transparent" }}>
       <nav className="y2kNav" style={{ background: "transparent" }}>
-        <div className="y2kHeroWrap">
+        <a href="/" className="y2kHeroWrap" style={{ textDecoration: "none" }}>
           <div className="y2kCenterHotbillsWrap">
             <Image
               src="/images/hotbills.png"
@@ -72,7 +87,7 @@ export default function Navbar() {
               priority
             />
           </div>
-        </div>
+        </a>
 
         <div className="y2kNavRight">
           {loading ? (
@@ -81,9 +96,9 @@ export default function Navbar() {
             <div className="y2kUserStack">
               {state ? <span className="y2kStateBadge">State: {state}</span> : null}
               <span className="y2kUserMeta">
-                User: {user.user_metadata?.full_name || "Authenticated user"}
+                User: {displayName || user.email || "Authenticated user"}
               </span>
-              <span className="y2kUserMeta">Email: {user.email}</span>
+              <a href="/profile" className="y2kActionLink">Profile</a>
               <a href="/match" className="y2kActionLink">Find Match</a>
               <a href="/votes" className="y2kActionLink">My Votes</a>
               <button onClick={handleLogout} className="y2kActionLink" type="button">
