@@ -56,8 +56,9 @@ def vote():
 
     sb.table("bills").update({"bill_elo": new_elo}).eq("bill_id", bill_id).execute()
 
+    current_bias = float(user["bias"]) if user["bias"] is not None else 0.5
     new_bias = user_bias_alg(
-        user_bias=user["bias"],
+        user_bias=current_bias,
         bill_bias=bill_bias,
         user_vote=user_vote,
     )
