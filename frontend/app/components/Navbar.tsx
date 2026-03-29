@@ -9,7 +9,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 
 export default function Navbar() {
   const supabase = createClient();
-  const { state } = useUserState();
+  const { state, isStateLoading } = useUserState();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef(false);
@@ -60,9 +60,23 @@ export default function Navbar() {
       </a>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {user && state && (
-          <span style={{ fontSize: "0.875rem", opacity: 0.7 }}>{state}</span>
-        )}
+        {user ? (
+          <span
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--muted-text)",
+              padding: "4px 10px",
+              borderRadius: "6px",
+              border: "1px solid var(--card-border)",
+            }}
+            title="Your home state filters which bills appear in the deck."
+          >
+            State:{" "}
+            <strong style={{ color: "var(--foreground)" }}>
+              {isStateLoading ? "…" : state || "—"}
+            </strong>
+          </span>
+        ) : null}
         {loading ? (
           <span style={{ fontSize: "0.875rem", opacity: 0.5 }}>...</span>
         ) : user ? (
