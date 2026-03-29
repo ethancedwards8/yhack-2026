@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 type RailImage = {
   src: string;
@@ -9,22 +12,43 @@ type RailImage = {
 
 type VerticalImageRailProps = {
   images: RailImage[];
+  cycleMs?: number;
 };
 
-export default function VerticalImageRail({ images }: VerticalImageRailProps) {
+export default function VerticalImageRail({ images, cycleMs = 10000 }: VerticalImageRailProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [images.length]);
+
+  useEffect(() => {
+    if (images.length < 2) return;
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+    }, cycleMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [images.length, cycleMs]);
+
+  const activeImage = images[activeIndex];
+
+  if (!activeImage) {
+    return <aside className="portalImageRail" aria-label="Side images" />;
+  }
+
   return (
     <aside className="portalImageRail" aria-label="Side images">
-      {images.map((image) => (
-        <Image
-          key={`${image.src}-${image.alt}`}
-          src={image.src}
-          alt={image.alt}
-          width={image.width}
-          height={image.height}
-          className="portalImageRailImage"
-          priority
-        />
-      ))}
+      <Image
+        key={`${activeImage.src}-${activeIndex}`}
+        src={activeImage.src}
+        alt={activeImage.alt}
+        width={activeImage.width}
+        height={activeImage.height}
+        className="portalImageRailImage"
+        priority
+      />
     </aside>
   );
 }

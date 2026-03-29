@@ -22,6 +22,12 @@ export default function RootLayout({
                   width: 900,
                   height: 1600,
                 },
+                {
+                  src: "/images/TRIOLLIONDOLLAR.PNG",
+                  alt: "Trillion dollar banner",
+                  width: 900,
+                  height: 1600,
+                },
               ]}
             />
             <div className="portalContentFrame">{children}</div>
