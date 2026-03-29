@@ -1,3 +1,4 @@
+import "@/styles/globals.css"
 import { Auth0Provider } from "@auth0/nextjs-auth0";
 import Navbar from "./components/Navbar";
 import { UserStateProvider } from "./context/UserStateContext";
@@ -8,6 +9,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    <html lang="en">
+      <body className="appBody">{children}</body>
+    </html>
+  )
     <Auth0Provider>
       <UserStateProvider>
         <html lang="en">
