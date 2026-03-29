@@ -311,13 +311,13 @@ def update_elo():
         .maybe_single()
         .execute()
     )
-    if vote:
+    if vote.data:
         return jsonify({"error": "vote already cast???"}), 403
     
     resp = sb.table("swipes").insert({
         "bill_id": bill_id,
         "user_id": user_id,
-        "agree": 1
+        "agree": user_vote
     }).execute()
 
     return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo, "new_user_bias": new_bias})
