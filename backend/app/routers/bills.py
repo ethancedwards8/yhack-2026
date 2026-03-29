@@ -29,14 +29,18 @@ log = logging.getLogger(__name__)
 
 bills_bp = Blueprint("bills", __name__, url_prefix="/bills")
 
+# PDF_STATES = [
+#     "AK", "AL", "AR", "CO", "CT", "DC", "FL", "GA", "HI", "ID",
+#     "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MN", "MO", "MS",
+#     "MT", "NC", "ND", "NE", "NJ", "NM", "NV", "OH", "OK", "OR",
+#     "PA", "RI", "SD", "TN", "US", "UT", "VA", "VT", "WA", "WI", "WY",
+# ]
 PDF_STATES = [
-    "AK", "AL", "AR", "CO", "CT", "DC", "FL", "GA", "HI", "ID",
-    "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MN", "MO", "MS",
-    "MT", "NC", "ND", "NE", "NJ", "NM", "NV", "OH", "OK", "OR",
-    "PA", "RI", "SD", "TN", "US", "UT", "VA", "VT", "WA", "WI", "WY",
+ "MA", "CT", "MD", "RI"
 ]
 
 PDF_MIME = "application/pdf"
+_PDF_LINK_FIELDS = ("url", "state_link", "alt_state_link")
 MAX_PAGE_SIZE = 100
 
 
@@ -83,19 +87,42 @@ def _get_sponsor_party(sponsors: list[dict]) -> str | None:
     return _PARTY_MAP.get(sponsor.get("party"), "Independent")
 
 
-def _extract_pdf_text(legis: LegiScan, texts: list[dict]) -> str | None:
+def _url_looks_pdf(url: str) -> bool:
+    path = (url or "").split("?")[0]
+    return path.lower().endswith(".pdf")
+
+
+def _best_pdf_link(text_entry: dict) -> str | None:
+    for field in _PDF_LINK_FIELDS:
+        v = (text_entry.get(field) or "").strip()
+        if v and _url_looks_pdf(v):
+            return v
+    for field in _PDF_LINK_FIELDS:
+        v = (text_entry.get(field) or "").strip()
+        if v:
+            return v
+    return None
+
+
+def _extract_pdf_text_and_url(legis: LegiScan, texts: list[dict]) -> tuple[str | None, str | None]:
+    """Extract plain text from the first readable PDF bill text; capture its document URL."""
+    fallback_url: str | None = None
     for t in texts:
         if t.get("mime") != PDF_MIME:
             continue
+        doc_url = _best_pdf_link(t)
+        if doc_url and fallback_url is None:
+            fallback_url = doc_url
         try:
             doc = legis.get_bill_text(t["doc_id"])
             pdf_bytes = base64.b64decode(doc["doc"])
             with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
                 text = "\n".join(p.extract_text() or "" for p in pdf.pages)
-            return text.strip() or None
+            extracted = text.strip() or None
+            return extracted, doc_url or fallback_url
         except Exception:
             continue
-    return None
+    return None, fallback_url
 
 
 @bills_bp.route("/collect", methods=["POST"])
@@ -134,16 +161,19 @@ def collect():
                 try:
                     detail = legis.get_bill(bill_id=bill_id)
                     texts = detail.get("texts", [])
-                    pdf_text = _extract_pdf_text(legis, texts)
+                    pdf_text, pdf_url = _extract_pdf_text_and_url(legis, texts)
                     party = _get_sponsor_party(detail.get("sponsors", []))
                     if pdf_text:
                         log.info(f"[{state}] bill {bill_id} — extracted {len(pdf_text)} chars")
                     else:
                         log.warning(f"[{state}] bill {bill_id} — no PDF text extracted")
+                    if pdf_url:
+                        log.info(f"[{state}] bill {bill_id} — pdf_url present")
                     log.info(f"[{state}] bill {bill_id} — party: {party}")
                 except Exception as e:
                     log.error(f"[{state}] bill {bill_id} — error: {e}")
                     pdf_text = None
+                    pdf_url = None
                     party = None
 
                 state_bills.append({
@@ -153,6 +183,7 @@ def collect():
                     "description": entry.get("description", ""),
                     "state": state,
                     "url": entry.get("url", ""),
+                    "pdf_url": pdf_url,
                     "last_action": entry.get("last_action", ""),
                     "last_action_date": entry.get("last_action_date", ""),
                     "text": pdf_text,
@@ -194,7 +225,7 @@ def list_bills():
         "*"
         if include_text
         else (
-            "bill_id,bill_number,title,description,state,url,last_action,"
+            "bill_id,bill_number,title,description,state,url,pdf_url,last_action,"
             "last_action_date,created_at,bill_elo,party"
         )
     )
