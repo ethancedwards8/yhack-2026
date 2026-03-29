@@ -62,7 +62,7 @@ export default function LoginPage() {
   return (
     <div style={containerStyle}>
       <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>
-        {mode === "login" ? "Sign in to BillRank" : "Create an account"}
+        {mode === "login" ? "Sign in to HotBillsNearYou.com" : "Create an account"}
       </h1>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", maxWidth: 320 }}>
