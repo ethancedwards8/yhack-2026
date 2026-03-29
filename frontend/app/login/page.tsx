@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [state, setState] = useState("VA");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [checkEmail, setCheckEmail] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +28,14 @@ export default function LoginPage() {
     setLoading(true);
 
     if (mode === "signup") {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: name, state },
+          data: { 
+            name, 
+            state 
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -42,7 +44,6 @@ export default function LoginPage() {
         setError(signUpError.message);
         return;
       }
-      setCheckEmail(true);
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -57,39 +58,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-  };
-
-  if (checkEmail) {
-    return (
-      <div style={containerStyle}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700 }}>Check your email</h1>
-        <p style={{ color: "var(--muted-text)", textAlign: "center", maxWidth: 360 }}>
-          We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div style={containerStyle}>
       <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>
         {mode === "login" ? "Sign in to BillRank" : "Create an account"}
       </h1>
 
-      <button onClick={handleGoogleLogin} style={oauthButtonStyle}>
-        Sign in with Google
-      </button>
-
       <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", maxWidth: 320 }}>
-        <hr style={{ flex: 1, border: "none", borderTop: "1px solid #555" }} />
-        <span style={{ fontSize: "0.8rem", color: "var(--muted-text)" }}>or</span>
         <hr style={{ flex: 1, border: "none", borderTop: "1px solid #555" }} />
       </div>
 
