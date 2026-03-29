@@ -17,6 +17,7 @@ from app.legiscan import LegiScan
 from app.routers.bills import bills_bp
 from app.routers.users import users_bp
 from app.routers.votes import votes_bp
+from app.algorithm import elo_alg
 
 load_dotenv(dotenv_path=_backend_root / ".env")
 
@@ -48,6 +49,7 @@ def _normalize_bill_bias(raw_bias) -> int:
     mapping = {
         "Republican": 1,
         "Democrat": 0,
+        "Democratic": 0,
         "Independent": 2,
     }
     return mapping.get(text, 2)
@@ -101,6 +103,82 @@ def search():
     results = legis.search(state=state, query=query)
     return jsonify(results)
 
+@app.route("/elo", methods=["POST"])
+def update_elo():
+    sb = _get_supabase()
+    data = request.get_json(silent=True) or {}
+
+    bill_id_raw = data.get("bill_id")
+    user_id_raw = data.get("user_id")
+    user_vote_raw = data.get("user_vote")
+
+    if bill_id_raw is None or user_id_raw is None or user_vote_raw is None:
+        return jsonify({"error": "bill_id, user_id, and user_vote are required"}), 400
+
+    try:
+        bill_id = int(bill_id_raw)
+        user_id = int(user_id_raw)
+        user_vote = int(user_vote_raw)
+    except (TypeError, ValueError):
+        return jsonify({"error": "bill_id, user_id, and user_vote must be integers"}), 400
+
+    bill = (
+        sb.table("bills")
+        .select("party")
+        .eq("bill_id", bill_id)
+        .single()
+        .execute()
+        .data
+    )
+    if not bill:
+        return jsonify({"error": "bill not found", "bill_id": bill_id}), 404
+
+    user = (
+        sb.table("users")
+        .select("bias")
+        .eq("user_id", str(user_id))
+        .single()
+        .execute()
+        .data
+    )
+    if not user:
+        return jsonify({"error": "user not found", "user_id": user_id}), 404
+
+    bill_bias = _normalize_bill_bias(bill.get("party"))
+    user_bias_raw = user.get("bias")
+    try:
+        user_bias = float(user_bias_raw) if user_bias_raw is not None else 0.5
+    except (TypeError, ValueError):
+        return jsonify({"error": "invalid user bias"}), 400
+
+    try:
+        delta_float = elo_alg(
+            elo=0.0,
+            bill_bias=bill_bias,
+            user_bias=user_bias,
+            user_vote=user_vote,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    delta = int(round(delta_float))
+
+    rpc_result = (
+        sb.rpc(
+            "update_bill_elo",
+            {
+                "p_bill_id": bill_id,
+                "p_delta": delta,
+            },
+        )
+        .execute()
+    )
+
+    new_elo = rpc_result.data
+    if isinstance(new_elo, list):
+        new_elo = new_elo[0] if new_elo else None
+
+    return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo})
 
 @app.route("/user/<user_id>")
 def get_user(user_id):

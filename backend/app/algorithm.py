@@ -8,11 +8,10 @@ ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=ENV_PATH)
 BACKEND_API = os.getenv("BACKEND_API")
 
-if not BACKEND_API:
-    raise RuntimeError("no backend api")
-
 
 def get_updated_elo(bill_id : int, user_id : int, user_vote : int) -> float: 
+    if not BACKEND_API:
+        raise RuntimeError("BACKEND_API must be set to call get_updated_elo")
     user_response = requests.get(f'{BACKEND_API}/user/{user_id}')
     bill_response = requests.get(f'{BACKEND_API}/bill/{bill_id}')
     user_response.raise_for_status()
