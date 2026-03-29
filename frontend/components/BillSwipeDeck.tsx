@@ -11,6 +11,7 @@ import {
 import BillCard, { type BillSummary } from "@/components/BillCard"
 import BillDetailModal from "@/components/BillDetailModal"
 import { createClient } from "@/lib/supabase/client"
+import { useCurrentBill } from "@/app/context/CurrentBillContext"
 
 type SwipeDirection = "left" | "right"
 
@@ -79,6 +80,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null)
   const pointerMovedRef = useRef(false)
 
+  const { setCurrentBill } = useCurrentBill()
+
   const topBill = bills[currentIndex] ?? null
   const detailBill =
     detailBillId !== null ? bills.find((b) => b.bill_id === detailBillId) ?? null : null
@@ -129,6 +132,18 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
     if (userState) loadBills()
     else console.warn("[BillSwipeDeck] userState is empty, not loading bills")
   }, [loadBills, userState])
+
+  useEffect(() => {
+    if (topBill) {
+      setCurrentBill({
+        billId: topBill.bill_id,
+        title: topBill.title ?? null,
+        state: topBill.state ?? null,
+      })
+    } else {
+      setCurrentBill(null)
+    }
+  }, [topBill, setCurrentBill])
 
   const performSwipe = useCallback(
     async (direction: SwipeDirection) => {
