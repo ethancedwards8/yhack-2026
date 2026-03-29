@@ -48,3 +48,62 @@ def elo_alg(elo : float, bill_bias : int, user_bias : float, user_vote : int) ->
     vote_direction = 1 if user_vote == 1 else -1
 
     return elo + (boost * vote_direction)
+
+
+def user_bias_alg(user_bias: float, bill_bias: int, user_vote: int) -> float:
+    """Adjust a user's political position based on their vote on a bill.
+
+    Parameters
+    ----------
+    user_bias : float
+        Current position on [0.0, 1.0].
+        0.0 = fully left/Democratic, 1.0 = fully right/Republican, 0.5 = neutral.
+    bill_bias : int
+        0 = Democratic, 1 = Republican, 2 = Independent.
+    user_vote : int
+        1 = upvote/agree, 0 = downvote/disagree.
+
+    Returns
+    -------
+    float
+        Updated user_bias, clamped to [0.0, 1.0].
+
+    The shift follows the same ELO intuition as ``elo_alg``:
+    * Voting *for* a bill pulls the user toward that bill's side.
+    * Voting *against* a bill pushes the user toward the opposite side.
+    * The magnitude scales with how "surprising" the vote is — a large
+      gap between the user's current lean and the vote direction produces
+      a bigger swing (K ranges from 0.02 to 0.05).
+    * Independent bills (bill_bias == 2) have no effect on user bias.
+    """
+    if bill_bias not in (0, 1, 2):
+        raise ValueError("bill_bias must be 0, 1, or 2")
+    if not 0.0 <= user_bias <= 1.0:
+        raise ValueError("user_bias must be between 0.0 and 1.0")
+    if user_vote not in (0, 1):
+        raise ValueError("user_vote must be 0 or 1")
+
+    # Independent bills don't shift user bias
+    if bill_bias == 2:
+        return user_bias
+
+    # 0.0 = Democratic side, 1.0 = Republican side
+    bill_side = float(bill_bias)
+
+    # Upvote → pull toward the bill's side
+    # Downvote → push toward the opposite side
+    target = bill_side if user_vote == 1 else 1.0 - bill_side
+
+    gap = abs(target - user_bias)
+
+    # K-factor: base + surprise bonus (mirrors min_boost / max_boost in elo_alg)
+    k = 0.02 + 0.03 * gap  # 0.02 when aligned, up to 0.05 at maximum distance
+
+    if target > user_bias:
+        shift = k
+    elif target < user_bias:
+        shift = -k
+    else:
+        shift = 0.0
+
+    return max(0.0, min(1.0, round(user_bias + shift, 4)))

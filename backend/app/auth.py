@@ -67,7 +67,7 @@ def require_auth(f):
             logger.info("Upserting user: %s", payload)
             result = sb.table("users").upsert(payload, on_conflict="user_id").execute()
             logger.info("Upsert result: %s", result)
-            # Set default bias only for new users (where bias is NULL)
+            # Set default bias only for new users (where bias is still NULL)
             sb.table("users").update({"bias": 0.5}).eq(
                 "user_id", claims["sub"]
             ).is_("bias", "null").execute()

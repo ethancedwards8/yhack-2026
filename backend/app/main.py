@@ -20,7 +20,7 @@ from app.legiscan import LegiScan
 from app.routers.bills import bills_bp
 from app.routers.users import users_bp
 from app.routers.votes import votes_bp
-from app.algorithm import elo_alg
+from app.algorithm import elo_alg, user_bias_alg
 
 load_dotenv(dotenv_path=_backend_root / ".env")
 
@@ -249,7 +249,14 @@ def update_elo():
     if isinstance(new_elo, list):
         new_elo = new_elo[0] if new_elo else None
 
-    return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo})
+    new_bias = user_bias_alg(
+        user_bias=user_bias,
+        bill_bias=bill_bias,
+        user_vote=user_vote,
+    )
+    sb.table("users").update({"bias": new_bias}).eq("user_id", str(user_id)).execute()
+
+    return jsonify({"bill_id": bill_id, "delta": delta, "new_elo": new_elo, "new_user_bias": new_bias})
 
 @app.route("/user/<user_id>")
 def get_user(user_id):
