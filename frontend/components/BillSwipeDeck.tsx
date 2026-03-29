@@ -10,6 +10,7 @@ import {
 
 import BillCard, { type BillSummary } from "@/components/BillCard"
 import BillDetailModal from "@/components/BillDetailModal"
+import { createClient } from "@/lib/supabase/client"
 
 type SwipeDirection = "left" | "right"
 
@@ -33,6 +34,20 @@ function parseBillSummaries(payload: unknown): BillSummary[] {
     }
     const billId = (entry as { bill_id?: unknown }).bill_id
     return typeof billId === "number"
+  })
+}
+
+async function castVote(apiBaseUrl: string, billId: number, userVote: 0 | 1) {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) return
+  await fetch(`${apiBaseUrl}/vote`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ bill_id: billId, user_vote: userVote }),
   })
 }
 
@@ -98,6 +113,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
       }
       setIsAnimatingOut(true)
       const directionValue = direction === "right" ? 1 : -1
+      // Fire vote in background — don't await so animation isn't blocked
+      void castVote(apiBaseUrl, topBill.bill_id, direction === "right" ? 1 : 0)
       await controls.start({
         x: directionValue * 520,
         rotate: directionValue * 18,
@@ -108,7 +125,7 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
       setCurrentIndex((index) => index + 1)
       setIsAnimatingOut(false)
     },
-    [controls, isAnimatingOut, shouldReduceMotion, topBill],
+    [apiBaseUrl, controls, isAnimatingOut, shouldReduceMotion, topBill],
   )
 
   useEffect(() => {

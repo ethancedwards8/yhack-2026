@@ -1,8 +1,11 @@
+import logging
 import os
 from flask import Blueprint, jsonify, request, g
 from supabase import create_client
 
 from app.algorithm import elo_alg
+
+logger = logging.getLogger(__name__)
 from app.auth import require_auth
 
 votes_bp = Blueprint("votes", __name__, url_prefix="/vote")
@@ -44,6 +47,11 @@ def vote():
         bill_bias=bill_bias,
         user_bias=user["bias"],
         user_vote=user_vote,
+    )
+
+    logger.info(
+        "vote: bill_id=%s user_id=%s user_vote=%s old_elo=%s new_elo=%s party=%s",
+        bill_id, g.user_id, user_vote, bill["bill_elo"], new_elo, bill.get("party"),
     )
 
     sb.table("bills").update({"bill_elo": new_elo}).eq("bill_id", bill_id).execute()

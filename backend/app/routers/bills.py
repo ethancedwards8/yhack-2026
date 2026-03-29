@@ -105,7 +105,7 @@ def collect():
     legis = LegiScan()
     sb = _get_supabase()
 
-    bills = []
+    total_bills = 0
     states_done = []
     states_failed = []
 
@@ -113,7 +113,7 @@ def collect():
         log.info(f"DEV mode: limiting to {DEV_BILL_LIMIT} bills total")
 
     for state in PDF_STATES:
-        if DEV and len(bills) >= DEV_BILL_LIMIT:
+        if DEV and total_bills >= DEV_BILL_LIMIT:
             break
         try:
             log.info(f"[{state}] fetching current session...")
@@ -124,9 +124,10 @@ def collect():
                 continue
 
             master = legis.get_master_list(session_id=session_id)
-            limit = min(sample_size, DEV_BILL_LIMIT - len(bills)) if DEV else sample_size
+            limit = min(sample_size, DEV_BILL_LIMIT - total_bills) if DEV else sample_size
             log.info(f"[{state}] session {session_id}, collecting {limit} bills...")
 
+            state_bills = []
             for entry in master[:limit]:
                 bill_id = entry.get("bill_id")
                 log.info(f"[{state}] bill {bill_id} ({entry.get('number')}) — fetching detail + PDF text")
@@ -145,7 +146,7 @@ def collect():
                     pdf_text = None
                     party = None
 
-                bills.append({
+                state_bills.append({
                     "bill_id": bill_id,
                     "bill_number": entry.get("number"),
                     "title": entry.get("title"),
@@ -159,21 +160,20 @@ def collect():
                 })
                 time.sleep(0.1)
 
+            state_bills = [b for b in state_bills if b["bill_id"] is not None]
+            if state_bills:
+                log.info(f"[{state}] upserting {len(state_bills)} bills into Supabase...")
+                sb.table("bills").upsert(state_bills, on_conflict="bill_id").execute()
+
+            total_bills += len(state_bills)
             states_done.append(state)
-            log.info(f"[{state}] done. total bills so far: {len(bills)}")
+            log.info(f"[{state}] done. total bills so far: {total_bills}")
         except Exception as e:
             log.error(f"[{state}] failed: {e}")
             states_failed.append(state)
 
-    bills = [b for b in bills if b["bill_id"] is not None]
-
-    if bills:
-        log.info(f"Upserting {len(bills)} bills into Supabase...")
-        sb.table("bills").upsert(bills, on_conflict="bill_id").execute()
-        log.info("Upsert complete.")
-
     return jsonify({
-        "total_bills": len(bills),
+        "total_bills": total_bills,
         "states_done": states_done,
         "states_failed": states_failed,
     })
