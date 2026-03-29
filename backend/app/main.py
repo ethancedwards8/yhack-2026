@@ -61,20 +61,10 @@ def _normalize_bill_bias(raw_bias) -> int:
     }
     return mapping.get(text, 2)
 
-_default_origins = [
-    "http://127.0.0.1:3000",
-    "http://localhost:3000",
-]
-_origins_env = os.environ.get("CORS_ORIGINS")
-_origins = (
-    [o.strip() for o in _origins_env.split(",") if o.strip()]
-    if _origins_env
-    else _default_origins
-)
 CORS(
     app,
-    resources={r"/*": {"origins": _origins}},
-    supports_credentials=True,
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=False,
 )
 
 
