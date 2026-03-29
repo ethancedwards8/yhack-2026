@@ -104,6 +104,7 @@ export default function Navbar() {
             <div className="y2kUserStack">
               {state ? <span className="y2kStateBadge">State: {state}</span> : null}
               <span className="y2kUserMeta">Email: {user.email}</span>
+              <a href="/profile" className="y2kActionLink">Profile</a>
               <a href="/match" className="y2kActionLink">Find Match</a>
               <a href="/votes" className="y2kActionLink">My Votes</a>
               <button onClick={handleLogout} className="y2kActionLink" type="button">

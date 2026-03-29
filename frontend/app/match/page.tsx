@@ -47,7 +47,6 @@ export default function MatchPage() {
 
       const userId = session.user.id
 
-      // Get matches (sorted by closeness client-side)
       const matchRes = await fetch(`${API_BASE_URL}/match`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,17 +65,14 @@ export default function MatchPage() {
         return
       }
 
-      // Get own bias to find closest match
       const meRes = await fetch(`${API_BASE_URL}/user/${userId}`)
       const me = meRes.ok ? await meRes.json() : null
       const myBias: number = me?.bias ?? 0.5
 
-      // Pick closest bias match
       const best = matches.reduce((a, b) =>
         Math.abs(a.bias - myBias) <= Math.abs(b.bias - myBias) ? a : b
       )
 
-      // Fetch full profile for the best match
       const userRes = await fetch(`${API_BASE_URL}/user/${best.user_id}`)
       if (!userRes.ok) throw new Error("Could not load matched user profile.")
       const matchedUser: MatchedUser = await userRes.json()
@@ -90,116 +86,150 @@ export default function MatchPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-      <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 8 }}>
-        Find Your Match
-      </h1>
-      <p style={{ color: "var(--muted-text)", marginBottom: 32 }}>
-        We&apos;ll find someone whose political views align most closely with yours based on how you&apos;ve both voted on bills.
-      </p>
-
-      <button
-        onClick={findMatch}
-        disabled={loading}
-        style={{
-          padding: "12px 32px",
+    <div style={{ maxWidth: 480, margin: "32px auto", padding: "0 12px" }}>
+      {/* Title bar */}
+      <div style={{
+        background: "linear-gradient(180deg, #0f2eff, #001da5 55%, #170073)",
+        border: "2px outset #d7f9ff",
+        padding: "6px 14px",
+        marginBottom: 16,
+      }}>
+        <span style={{
+          color: "#fff",
+          fontWeight: 800,
           fontSize: "1rem",
-          fontWeight: 600,
-          borderRadius: 10,
-          border: "none",
-          background: loading ? "#444" : "var(--foreground)",
-          color: loading ? "#888" : "var(--background)",
-          cursor: loading ? "not-allowed" : "pointer",
-          transition: "background 0.15s",
-        }}
-      >
-        {loading ? "Searching…" : "Find My Match"}
-      </button>
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          textShadow: "0 0 8px #00e1ff",
+        }}>
+          Find Your Match
+        </span>
+      </div>
 
-      {error && (
-        <p style={{ color: "#f87171", marginTop: 24 }}>{error}</p>
-      )}
+      {/* Card */}
+      <div style={{
+        border: "4px ridge #ffe300",
+        background: "repeating-linear-gradient(-45deg, rgba(255,255,255,0.06) 0 8px, rgba(255,0,255,0.09) 8px 16px), #08081f",
+        boxShadow: "0 0 0 3px #ff45ff inset, 0 12px 30px rgba(0,0,0,0.45)",
+        padding: "24px 20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}>
+        <p style={{ color: "#a0a0d0", fontSize: "0.9rem", lineHeight: 1.5 }}>
+          We&apos;ll find someone whose political views align most closely with yours based on how you&apos;ve both voted on bills.
+        </p>
 
-      {match && (
-        <div
+        <button
+          onClick={findMatch}
+          disabled={loading}
+          className="primaryButton"
           style={{
-            marginTop: 40,
-            padding: "28px 24px",
-            borderRadius: 16,
-            border: "1px solid var(--card-border)",
-            background: "var(--card-bg)",
-            textAlign: "left",
+            padding: "10px 28px",
+            fontSize: "0.95rem",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.6 : 1,
+            alignSelf: "flex-start",
           }}
         >
-          <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-text)", marginBottom: 12 }}>
-            Your closest match
-          </p>
+          {loading ? "Searching…" : "Find My Match"}
+        </button>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
+        {error && (
+          <p className="errorText" style={{ fontSize: "0.85rem" }}>{error}</p>
+        )}
+
+        {match && (
+          <div style={{
+            border: "3px ridge var(--card-border)",
+            background: "var(--card-background)",
+            boxShadow: "0 0 0 2px #00e1ff inset",
+            padding: "16px",
+          }}>
+            {/* Title bar for result */}
+            <div style={{
+              background: "linear-gradient(180deg, #3f22d3, #150161)",
+              border: "2px inset #d4d4d4",
+              padding: "4px 10px",
+              marginBottom: 14,
+            }}>
+              <span style={{
+                color: "#ffec42",
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}>
+                Your Closest Match
+              </span>
+            </div>
+
+            {/* Avatar + name */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+              <div style={{
+                width: 52,
+                height: 52,
+                border: "3px outset #f5f5f5",
                 background: biasColor(match.bias),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.25rem",
-                fontWeight: 700,
+                fontSize: "1.4rem",
+                fontWeight: 800,
                 color: "#fff",
                 flexShrink: 0,
                 overflow: "hidden",
-              }}
-            >
-              {match.avatar_url ? (
-                <img
-                  src={match.avatar_url}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                (match.name || match.email || "?")[0].toUpperCase()
-              )}
-            </div>
-            <div>
-              <p style={{ fontWeight: 600, fontSize: "1.05rem", margin: 0 }}>
-                {match.name || "Anonymous"}
-              </p>
-              {match.email && (
-                <p style={{ fontSize: "0.8rem", color: "var(--muted-text)", margin: "2px 0 0" }}>
-                  {match.email}
+              }}>
+                {match.avatar_url ? (
+                  <img src={match.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  (match.name || match.email || "?")[0].toUpperCase()
+                )}
+              </div>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: "1rem", margin: 0, color: "#111" }}>
+                  {match.name || "Anonymous"}
                 </p>
-              )}
+                {match.email && (
+                  <p style={{ fontSize: "0.8rem", color: "#1f2d6b", margin: "2px 0 0", fontWeight: 600 }}>
+                    {match.email}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Bias bar */}
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--muted-text)", marginBottom: 6 }}>
-              <span>Democrat</span>
-              <span>Republican</span>
-            </div>
-            <div style={{ height: 8, borderRadius: 4, background: "#333", position: "relative", overflow: "hidden" }}>
-              <div
-                style={{
+            {/* Bias bar */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#1f2d6b", marginBottom: 6 }}>
+                <span>Democrat</span>
+                <span>Republican</span>
+              </div>
+              <div style={{ height: 10, border: "2px inset #d4d4d4", background: "#150161", position: "relative", overflow: "hidden" }}>
+                <div style={{
                   position: "absolute",
                   left: 0,
                   top: 0,
                   height: "100%",
                   width: `${match.bias * 100}%`,
                   background: `linear-gradient(to right, #3b82f6, ${biasColor(match.bias)})`,
-                  borderRadius: 4,
                   transition: "width 0.6s ease",
-                }}
-              />
+                }} />
+              </div>
+              <p style={{
+                textAlign: "center",
+                fontSize: "0.8rem",
+                marginTop: 8,
+                color: biasColor(match.bias),
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}>
+                {biasLabel(match.bias)}
+              </p>
             </div>
-            <p style={{ textAlign: "center", fontSize: "0.8rem", marginTop: 8, color: biasColor(match.bias), fontWeight: 600 }}>
-              {biasLabel(match.bias)}
-            </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
