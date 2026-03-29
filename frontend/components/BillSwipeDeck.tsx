@@ -138,6 +138,11 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "ArrowDown" || event.key === "Escape") {
+        event.preventDefault()
+        setDetailBillId(null)
+        return
+      }
       if (!topBill || isAnimatingOut) {
         return
       }
@@ -147,7 +152,7 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
       } else if (event.key === "ArrowRight") {
         event.preventDefault()
         void performSwipe("right")
-      } else if (event.key === "Enter") {
+      } else if (event.key === "ArrowUp" || event.key === "Enter") {
         event.preventDefault()
         setDetailBillId(topBill.bill_id)
       }
