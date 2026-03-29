@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useUser } from "@auth0/nextjs-auth0";
 import { useUserState } from "../context/UserStateContext";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 const PDF_STATES = [
   "AK","AL","AR","CO","CT","DC","FL","GA","HI","ID",
@@ -14,23 +10,7 @@ const PDF_STATES = [
 ];
 
 export default function Navbar() {
-  const { user, isLoading } = useUser();
   const { state, setState } = useUserState();
-  const synced = useRef(false);
-
-  useEffect(() => {
-    if (!user || synced.current) return;
-    synced.current = true;
-    fetch("/auth/access-token")
-      .then((r) => r.json())
-      .then(({ token }) => {
-        if (!token) return;
-        fetch(`${BACKEND_URL}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      })
-      .catch(() => {});
-  }, [user]);
 
   return (
     <nav style={{
@@ -45,61 +25,22 @@ export default function Navbar() {
       </a>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {user && (
-          <select
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            style={{
-              fontSize: "0.875rem",
-              padding: "4px 8px",
-              borderRadius: "6px",
-              border: "1px solid #555",
-              background: "transparent",
-              cursor: "pointer",
-            }}
-          >
-            {PDF_STATES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        )}
-        {isLoading ? (
-          <span style={{ fontSize: "0.875rem", opacity: 0.5 }}>...</span>
-        ) : user ? (
-          <>
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "0.875rem",
-            }}>
-              <span style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: "#22c55e",
-                display: "inline-block",
-              }} />
-              {user.name || user.email}
-            </span>
-            <a href="/auth/logout" style={{
-              fontSize: "0.875rem",
-              opacity: 0.7,
-              textDecoration: "underline",
-            }}>
-              Log out
-            </a>
-          </>
-        ) : (
-          <a href="/auth/login" style={{
+        <select
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          style={{
             fontSize: "0.875rem",
-            padding: "6px 14px",
-            border: "1px solid #555",
+            padding: "4px 8px",
             borderRadius: "6px",
-          }}>
-            Log in
-          </a>
-        )}
+            border: "1px solid #555",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        >
+          {PDF_STATES.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
       </div>
     </nav>
   );

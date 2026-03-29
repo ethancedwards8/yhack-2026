@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser } from "@auth0/nextjs-auth0";
 import { useEffect, useState } from "react";
 import { useUserState } from "./context/UserStateContext";
 
@@ -17,14 +16,11 @@ interface Bill {
 }
 
 export default function Page() {
-  const { user, isLoading } = useUser();
   const { state } = useUserState();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-
     setLoading(true);
     fetch(`${BACKEND_URL}/bills/?state=${state}`)
       .then((r) => r.json())
@@ -33,10 +29,7 @@ export default function Page() {
       })
       .catch(() => setBills([]))
       .finally(() => setLoading(false));
-  }, [user, state]);
-
-  if (isLoading) return <p>Loading...</p>;
-  if (!user) return <h1>Log in to see bills</h1>;
+  }, [state]);
 
   return (
     <div>
