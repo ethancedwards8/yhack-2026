@@ -624,7 +624,7 @@ def send_fax():
                 response = requests.post(
                     url,
                     files={"file": ("letter.pdf", pdf_file, "application/pdf")},
-                    data={"to": "+18447159633"},
+                    data={"to": fax_number},
                     auth=('fedd7e2d-1729-47c5-90de-9ec5d5878cad', SINCH_SECRET)
                 )
 

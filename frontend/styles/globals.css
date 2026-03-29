@@ -452,6 +452,138 @@ body {
   box-shadow: 0 0 0 2px #00e1ff inset, 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
+.faxSidebar {
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 16px;
+  align-self: start;
+  width: 100%;
+  padding: 14px;
+  border: 3px ridge #00dcff;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(0, 220, 255, 0.06) 0 6px,
+      rgba(120, 0, 255, 0.08) 6px 12px
+    ),
+    #0a0a2e;
+  box-shadow:
+    0 0 0 2px #7b2fff inset,
+    0 8px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faxSidebarTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #00dcff;
+  text-shadow: 0 0 6px rgba(0, 220, 255, 0.5);
+}
+
+.faxSidebarBill {
+  font-size: 0.78rem;
+  color: #c8c8ff;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.faxSidebarBill strong {
+  color: #ffe24e;
+}
+
+.faxSidebarHint {
+  font-size: 0.78rem;
+  color: #7878b0;
+  font-style: italic;
+}
+
+.faxSidebarLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a0a0e0;
+}
+
+.faxSidebarTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 10px;
+  border: 2px inset #5050a0;
+  border-radius: 2px;
+  background: #150161;
+  color: #f0f0ff;
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.faxSidebarTextarea::placeholder {
+  color: #6060a0;
+}
+
+.faxSidebarTextarea:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.faxSidebarSendBtn {
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.faxSidebarError {
+  font-size: 0.78rem;
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.faxSidebarSuccess {
+  font-size: 0.78rem;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.faxSidebarResults {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.faxSidebarResultsTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #00dcff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.faxSidebarResults ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.faxSidebarResultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #c8c8ff;
+  padding: 4px 6px;
+  border: 1px solid #2a2a60;
+  background: rgba(21, 1, 97, 0.5);
+}
+
 @keyframes shimmer {
   0% {
     background-position: 100% 0;
@@ -556,5 +688,13 @@ a {
   .portalContentFrame {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .faxSidebar {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    width: min(400px, 100%);
+    justify-self: center;
   }
 }
