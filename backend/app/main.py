@@ -270,11 +270,14 @@ def get_match_users():
     if user_id_raw is None:
         return jsonify({"error": "user_id is required"}), 400
 
+    user_id = str(user_id_raw).strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
     try:
-        user_id = int(user_id_raw)
         take = int(take_raw)
     except (TypeError, ValueError):
-        return jsonify({"error": "user_id and take must be integers"}), 400
+        return jsonify({"error": "take must be an integer"}), 400
 
     try:
         rpc_result = (
