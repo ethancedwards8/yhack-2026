@@ -3,10 +3,23 @@ import os
 from functools import wraps
 
 import jwt
+from jwt import PyJWKClient
 from flask import request, jsonify, g
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
+
+_jwks_client: PyJWKClient | None = None
+
+
+def _get_jwks_client() -> PyJWKClient:
+    global _jwks_client
+    if _jwks_client is None:
+        supabase_url = os.environ["SUPABASE_URL"]
+        jwks_url = f"{supabase_url}/auth/v1/.well-known/jwks.json"
+        logger.info("Creating JWKS client for %s", jwks_url)
+        _jwks_client = PyJWKClient(jwks_url)
+    return _jwks_client
 
 
 def _get_supabase():
@@ -14,8 +27,13 @@ def _get_supabase():
 
 
 def verify_token(token: str) -> dict:
-    secret = os.environ["SUPABASE_JWT_SECRET"]
-    return jwt.decode(token, secret, algorithms=["HS256"], audience="authenticated")
+    signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
+    return jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["ES256", "RS256"],
+        audience="authenticated",
+    )
 
 
 def require_auth(f):
@@ -43,13 +61,16 @@ def require_auth(f):
                 "user_id": claims["sub"],
                 "name": user_meta.get("full_name", ""),
                 "email": claims.get("email", ""),
-                "bias": 0.5,
             }
             if user_meta.get("state"):
                 payload["state"] = user_meta["state"]
             logger.info("Upserting user: %s", payload)
             result = sb.table("users").upsert(payload, on_conflict="user_id").execute()
             logger.info("Upsert result: %s", result)
+            # Set default bias only for new users (where bias is NULL)
+            sb.table("users").update({"bias": 0.5}).eq(
+                "user_id", claims["sub"]
+            ).is_("bias", "null").execute()
         except Exception:
             logger.exception("Failed to upsert user")
 

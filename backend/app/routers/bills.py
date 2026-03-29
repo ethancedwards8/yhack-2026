@@ -11,6 +11,8 @@ from supabase import create_client, Client
 
 from app.legiscan import LegiScan
 
+logger = logging.getLogger(__name__)
+
 DEV = os.getenv("DEV", "false").lower() == "true"
 DEV_BILL_LIMIT = 10
 
@@ -185,6 +187,9 @@ def list_bills():
     limit = min(_as_int(request.args.get("limit"), default=30, minimum=1), MAX_PAGE_SIZE)
     offset = _as_int(request.args.get("offset"), default=0, minimum=0)
 
+    logger.info("list_bills called: state=%s, limit=%d, offset=%d, include_text=%s",
+                state, limit, offset, include_text)
+
     select_columns = (
         "*"
         if include_text
@@ -197,7 +202,14 @@ def list_bills():
     if state:
         query = query.eq("state", state)
     query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
-    result = query.execute()
+
+    try:
+        result = query.execute()
+    except Exception as exc:
+        logger.exception("Supabase query failed in list_bills")
+        return jsonify({"error": "failed to query bills", "details": str(exc)}), 500
+
+    logger.info("list_bills returned %d rows", len(result.data) if result.data else 0)
     return jsonify(result.data)
 
 

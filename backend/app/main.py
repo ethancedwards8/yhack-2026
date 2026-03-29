@@ -1,7 +1,10 @@
+import logging
 import os
 import sys
 from functools import lru_cache
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 _backend_root = Path(__file__).resolve().parent.parent
 if str(_backend_root) not in sys.path:
@@ -23,6 +26,8 @@ load_dotenv(dotenv_path=_backend_root / ".env")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.register_blueprint(bills_bp)
@@ -79,8 +84,14 @@ def health():
 @app.route("/me")
 @require_auth
 def me():
+    logger.info("GET /me for user_id=%s", g.user_id)
     sb = _get_supabase()
-    result = sb.table("users").select("*").eq("user_id", g.user_id).single().execute()
+    try:
+        result = sb.table("users").select("*").eq("user_id", g.user_id).single().execute()
+    except Exception as exc:
+        logger.exception("GET /me supabase query failed for user_id=%s", g.user_id)
+        return jsonify({"error": "failed to fetch user", "details": str(exc)}), 500
+    logger.info("GET /me result: %s", result.data)
     return jsonify(result.data)
 
 
