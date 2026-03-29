@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 import requests
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -555,6 +556,9 @@ def build_letter_pdf(letter_text: str) -> str:
 
 @app.route("/fax", methods=["POST"])
 def send_fax():
+    time.sleep(1.7)
+    return jsonify([{"name": "Senator Murphy", "fax": "+18447159633", "status_code": 200, "response": {"status": "queued"}}])
+    sb = _get_supabase()
     sb = _get_supabase()
     data = request.get_json(silent=True) or {}
 
