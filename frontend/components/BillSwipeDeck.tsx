@@ -153,8 +153,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
 
   if (isLoading) {
     return (
-      <section className="deckRoot">
-        <h1>Swipe on bills</h1>
+      <section className="deckRoot deckLight y2kDeckRoot">
+        <h1 className="y2kDeckTitle">Swipe on bills</h1>
         <p className="subtleText">Loading bills...</p>
         <div className="skeletonCard" />
       </section>
@@ -163,8 +163,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
 
   if (error) {
     return (
-      <section className="deckRoot">
-        <h1>Swipe on bills</h1>
+      <section className="deckRoot deckLight y2kDeckRoot">
+        <h1 className="y2kDeckTitle">Swipe on bills</h1>
         <p className="errorText">{error}</p>
         <button className="primaryButton" onClick={() => void loadBills()} type="button">
           Retry
@@ -175,8 +175,8 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
 
   if (!topBill) {
     return (
-      <section className="deckRoot">
-        <h1>All caught up</h1>
+      <section className="deckRoot deckLight y2kDeckRoot">
+        <h1 className="y2kDeckTitle">All caught up</h1>
         <p className="subtleText">You have reached the end of this bill stack.</p>
         <button className="primaryButton" onClick={() => void loadBills()} type="button">
           Reload stack
@@ -186,9 +186,9 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
   }
 
   return (
-    <section className="deckRoot">
+    <section className="deckRoot deckLight y2kDeckRoot">
       <header className="deckHeader">
-        <h1>Swipe on bills</h1>
+        <h1 className="y2kDeckTitle">Swipe on bills</h1>
         <p className="subtleText">Tap a card to read more. Arrow keys also work.</p>
       </header>
 
@@ -260,20 +260,26 @@ export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckPr
 
       <footer className="deckFooter">
         <button
-          className="secondaryButton"
-          disabled={isAnimatingOut}
-          onClick={() => void performSwipe("left")}
+          className="secondaryButton deckActionButton"
           type="button"
+          disabled={isAnimatingOut}
+          aria-label="Disagree"
+          onClick={() => void performSwipe("left")}
         >
-          Swipe left
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
         </button>
         <button
-          className="primaryButton"
-          disabled={isAnimatingOut}
-          onClick={() => void performSwipe("right")}
+          className="primaryButton deckActionButton"
           type="button"
+          disabled={isAnimatingOut}
+          aria-label="Agree"
+          onClick={() => void performSwipe("right")}
         >
-          Swipe right
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
         </button>
       </footer>
 
