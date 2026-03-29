@@ -15,7 +15,7 @@ type VerticalImageRailProps = {
   cycleMs?: number;
 };
 
-export default function VerticalImageRail({ images, cycleMs = 10000 }: VerticalImageRailProps) {
+export default function VerticalImageRail({ images, cycleMs = 9500 }: VerticalImageRailProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {

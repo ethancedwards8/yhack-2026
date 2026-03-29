@@ -15,7 +15,7 @@ type HorizontalAdRailProps = {
   cycleMs?: number;
 };
 
-export default function HorizontalAdRail({ images, cycleMs = 12000 }: HorizontalAdRailProps) {
+export default function HorizontalAdRail({ images, cycleMs = 15000 }: HorizontalAdRailProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
