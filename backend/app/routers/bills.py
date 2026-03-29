@@ -35,6 +35,21 @@ PDF_STATES = [
 ]
 
 PDF_MIME = "application/pdf"
+MAX_PAGE_SIZE = 100
+
+
+def _as_bool(value: str | None, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _as_int(value: str | None, default: int, minimum: int) -> int:
+    try:
+        parsed = int(value) if value is not None else default
+    except ValueError:
+        parsed = default
+    return max(parsed, minimum)
 
 
 def _get_supabase() -> Client:
@@ -166,9 +181,22 @@ def collect():
 def list_bills():
     sb = _get_supabase()
     state = request.args.get("state", "").upper() or None
-    query = sb.table("bills").select("*")
+    include_text = _as_bool(request.args.get("include_text"), default=False)
+    limit = min(_as_int(request.args.get("limit"), default=30, minimum=1), MAX_PAGE_SIZE)
+    offset = _as_int(request.args.get("offset"), default=0, minimum=0)
+
+    select_columns = (
+        "*"
+        if include_text
+        else (
+            "bill_id,bill_number,title,description,state,url,last_action,"
+            "last_action_date,created_at,bill_elo,party"
+        )
+    )
+    query = sb.table("bills").select(select_columns)
     if state:
         query = query.eq("state", state)
+    query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
     result = query.execute()
     return jsonify(result.data)
 
