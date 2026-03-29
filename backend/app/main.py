@@ -174,6 +174,53 @@ def register_swipe():
     return jsonify(), 200
     
 
+@app.route("/leaderboard/<user_id>", methods=["GET"])
+def get_leaderboard(user_id):
+    sb = _get_supabase()
+
+    result = (
+        sb.table("users")
+        .select("user_id,bias,name,email,state")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        return jsonify({"error": "could not find user"}), 404
+
+    state = result.data[0].get("state")
+    uid = result.data[0].get("user_id")
+
+    swipe_result = (
+        sb.table("swipes")
+        .select("bill_id")
+        .eq("user_id", uid)
+        .execute()
+    )
+
+    swiped_ids = set(s["bill_id"] for s in swipe_result.data)
+
+    bills_result = (
+        sb.table("bills")
+        .select("*")
+        .eq("state", state)
+        .order("bill_elo", desc=True)
+        .limit(10)
+        .execute()
+    )
+
+    leaderboard = []
+    for bill in bills_result.data:
+        leaderboard.append({
+            **bill,
+            "visible": bill["bill_id"] in swiped_ids
+        })
+
+    return jsonify({
+        "leaderboard": leaderboard
+    })
+
+
 @app.route("/elo", methods=["POST"])
 def update_elo():
     sb = _get_supabase()
