@@ -63,8 +63,13 @@ def _normalize_bill_bias(raw_bias) -> int:
 
 CORS(
     app,
-    resources={r"/*": {"origins": "*"}},
-    supports_credentials=False,
+    resources={r"/*": {"origins": [
+        "https://hotbillsnearyou.com",
+        "https://www.hotbillsnearyou.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]}},
+    supports_credentials=True,
 )
 
 
