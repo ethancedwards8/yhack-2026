@@ -83,8 +83,8 @@ export default function VotesPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: "40px auto" }}>
-      <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 4 }}>My Votes</h1>
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 0", minHeight: "100%", background: "#08081f" }}>
+      <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", textShadow: "0 0 8px #00dcff" }}>My Votes</h1>
       <p style={{ color: "var(--muted-text)", marginBottom: 24 }}>
         {votes.length} bill{votes.length !== 1 ? "s" : ""} swiped —{" "}
         <span style={{ color: "#4ade80" }}>{agreedCount} agreed</span>,{" "}
@@ -99,14 +99,17 @@ export default function VotesPage() {
             onClick={() => setFilter(f)}
             style={{
               padding: "6px 16px",
-              borderRadius: 20,
-              border: "1px solid var(--card-border)",
-              background: filter === f ? "var(--foreground)" : "transparent",
-              color: filter === f ? "var(--background)" : "var(--foreground)",
+              borderRadius: 3,
+              border: "2px outset #f5f5f5",
+              background: filter === f
+                ? "linear-gradient(180deg, #fff47d, #ffb810)"
+                : "linear-gradient(180deg, #1ce6ff, #0084ff 55%, #0645df)",
+              color: filter === f ? "#2f1400" : "#ffffff",
               cursor: "pointer",
               fontSize: "0.8rem",
-              fontWeight: 600,
-              textTransform: "capitalize",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
             }}
           >
             {f}
@@ -124,11 +127,13 @@ export default function VotesPage() {
         {filtered.map((vote) => (
           <div
             key={vote.bill_id}
+            className="voteCard"
             style={{
               padding: "16px 20px",
-              borderRadius: 12,
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg)",
+              borderRadius: 4,
+              border: "3px ridge var(--card-border)",
+              background: "var(--card-background)",
+              boxShadow: "0 0 0 2px #00e1ff inset",
               display: "flex",
               gap: 16,
               alignItems: "flex-start",
@@ -141,7 +146,7 @@ export default function VotesPage() {
                 height: 36,
                 borderRadius: "50%",
                 background: vote.agree === 1 ? "#166534" : "#7f1d1d",
-                border: `2px solid ${vote.agree === 1 ? "#4ade80" : "#f87171"}`,
+                border: `2px outset ${vote.agree === 1 ? "#4ade80" : "#f87171"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -159,12 +164,14 @@ export default function VotesPage() {
                   <span
                     style={{
                       fontSize: "0.7rem",
-                      fontWeight: 600,
-                      padding: "2px 8px",
-                      borderRadius: 4,
-                      background: partyColor(vote.party) + "22",
-                      color: partyColor(vote.party),
-                      border: `1px solid ${partyColor(vote.party)}44`,
+                      fontWeight: 700,
+                      padding: "3px 8px",
+                      borderRadius: 2,
+                      background: "#150161",
+                      color: "#fff",
+                      border: `2px solid ${partyColor(vote.party)}`,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
                     }}
                   >
                     {vote.party}
@@ -180,12 +187,12 @@ export default function VotesPage() {
                 )}
               </div>
 
-              <p style={{ fontWeight: 600, margin: "0 0 4px", lineHeight: 1.3, fontSize: "0.95rem" }}>
+              <p style={{ fontWeight: 800, margin: "0 0 4px", lineHeight: 1.3, fontSize: "0.95rem", color: "#111" }}>
                 {vote.title ?? `Bill #${vote.bill_id}`}
               </p>
 
               {vote.description && (
-                <p style={{ fontSize: "0.8rem", color: "var(--muted-text)", margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: "0.8rem", color: "#1a1a1a", margin: 0, lineHeight: 1.5 }}>
                   {vote.description}
                 </p>
               )}
@@ -195,7 +202,7 @@ export default function VotesPage() {
                   href={vote.pdf_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: "0.75rem", color: "var(--muted-text)", marginTop: 8, display: "inline-block" }}
+                  style={{ fontSize: "0.75rem", color: "#2b0f00", marginTop: 8, display: "inline-block", border: "2px outset #f5f5f5", padding: "4px 10px", background: "linear-gradient(180deg, #ffe24e, #ffab09)", fontWeight: 700, textDecoration: "none" }}
                 >
                   View PDF →
                 </a>
