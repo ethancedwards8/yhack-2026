@@ -15,6 +15,7 @@ type SwipeDirection = "left" | "right"
 
 type BillSwipeDeckProps = {
   apiBaseUrl: string
+  userState: string
 }
 
 const PAGE_SIZE = 30
@@ -35,7 +36,7 @@ function parseBillSummaries(payload: unknown): BillSummary[] {
   })
 }
 
-export default function BillSwipeDeck({ apiBaseUrl }: BillSwipeDeckProps) {
+export default function BillSwipeDeck({ apiBaseUrl, userState }: BillSwipeDeckProps) {
   const shouldReduceMotion = useReducedMotion()
   const controls = useAnimationControls()
   const [bills, setBills] = useState<BillSummary[]>([])
@@ -54,21 +55,26 @@ export default function BillSwipeDeck({ apiBaseUrl }: BillSwipeDeckProps) {
   )
 
   const loadBills = useCallback(async () => {
+    console.log("[BillSwipeDeck] loadBills called, userState=", userState)
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch(
-        `${apiBaseUrl}/bills/?limit=${PAGE_SIZE}&offset=0&include_text=false`,
-        { credentials: "include" },
-      )
+      const stateParam = userState ? `&state=${userState}` : ""
+      const url = `${apiBaseUrl}/bills/?limit=${PAGE_SIZE}&offset=0&include_text=false${stateParam}`
+      console.log("[BillSwipeDeck] fetching:", url)
+      const response = await fetch(url, { credentials: "include" })
+      console.log("[BillSwipeDeck] response status:", response.status)
       if (!response.ok) {
         throw new Error(`Failed to load bills (${response.status})`)
       }
       const payload = await response.json()
+      console.log("[BillSwipeDeck] raw payload length:", Array.isArray(payload) ? payload.length : payload)
       const parsed = parseBillSummaries(payload)
+      console.log("[BillSwipeDeck] parsed bills:", parsed.length)
       setBills(parsed)
       setCurrentIndex(0)
     } catch (loadError) {
+      console.error("[BillSwipeDeck] load error:", loadError)
       setError(
         loadError instanceof Error ? loadError.message : "Unable to load bills right now.",
       )
@@ -77,11 +83,13 @@ export default function BillSwipeDeck({ apiBaseUrl }: BillSwipeDeckProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [apiBaseUrl])
+  }, [apiBaseUrl, userState])
 
   useEffect(() => {
-    loadBills()
-  }, [loadBills])
+    console.log("[BillSwipeDeck] userState changed to:", userState)
+    if (userState) loadBills()
+    else console.warn("[BillSwipeDeck] userState is empty, not loading bills")
+  }, [loadBills, userState])
 
   const performSwipe = useCallback(
     async (direction: SwipeDirection) => {
