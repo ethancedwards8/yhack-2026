@@ -82,9 +82,7 @@ def require_auth(f):
 
             # Insert the row only if it doesn't exist yet (ignore conflicts)
             # This prevents every request from overwriting user-editable fields like name
-            new_row: dict = {"user_id": user_id, "email": email}
-            if full_name:
-                new_row["name"] = full_name
+            new_row: dict = {"user_id": user_id, "email": email, "name": full_name or ""}
             if state:
                 new_row["state"] = state
             logger.info("Inserting user if not exists: %s", new_row)
