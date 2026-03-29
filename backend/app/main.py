@@ -240,6 +240,7 @@ def get_bill(bill_id):
             "party": row.get("party"),
             "title": row.get("title"),
             "state": row.get("state"),
+            "full_text": row.get("description")
         }
     )
 
