@@ -109,14 +109,13 @@ def user_bias_alg(user_bias: float, bill_bias: int, user_vote: int) -> float:
     return max(0.0, min(1.0, round(user_bias + shift, 4)))
 
 
-def match_algo(user_id: int, take: int = 5) -> list[dict[str, object]]:
+def match_algo(user_id: str, take: int = 5) -> list[dict[str, object]]:
     if not BACKEND_API:
         raise RuntimeError("BACKEND_API must be set to call match_algo")
 
-    try:
-        user_id_int = int(user_id)
-    except (TypeError, ValueError):
-        raise ValueError("user_id must be an integer")
+    user_id_str = str(user_id).strip()
+    if not user_id_str:
+        raise ValueError("user_id must be a non-empty string")
 
     try:
         take_int = int(take)
@@ -125,7 +124,7 @@ def match_algo(user_id: int, take: int = 5) -> list[dict[str, object]]:
 
     response = requests.post(
         f"{BACKEND_API}/match",
-        json={"user_id": user_id_int, "take": take_int},
+        json={"user_id": user_id_str, "take": take_int},
     )
     response.raise_for_status()
     payload = response.json()
