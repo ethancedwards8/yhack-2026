@@ -85,7 +85,7 @@ export default function VotesPage() {
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 0", minHeight: "100%", background: "#08081f" }}>
       <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", textShadow: "0 0 8px #00dcff" }}>My Votes</h1>
-      <p style={{ color: "var(--muted-text)", marginBottom: 24 }}>
+      <p style={{ marginBottom: 24 }}>
         {votes.length} bill{votes.length !== 1 ? "s" : ""} swiped —{" "}
         <span style={{ color: "#4ade80" }}>{agreedCount} agreed</span>,{" "}
         <span style={{ color: "#f87171" }}>{disagreedCount} disagreed</span>
