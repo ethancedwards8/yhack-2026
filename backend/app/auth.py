@@ -3,21 +3,10 @@ import os
 from functools import wraps
 
 import jwt
-from jwt import PyJWKClient
 from flask import request, jsonify, g
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
-
-_jwks_client = None
-
-
-def _get_jwks_client():
-    global _jwks_client
-    if _jwks_client is None:
-        domain = os.environ["AUTH0_DOMAIN"]
-        _jwks_client = PyJWKClient(f"https://{domain}/.well-known/jwks.json")
-    return _jwks_client
 
 
 def _get_supabase():
@@ -25,20 +14,8 @@ def _get_supabase():
 
 
 def verify_token(token: str) -> dict:
-    domain = os.environ["AUTH0_DOMAIN"]
-    audience = os.environ.get("AUTH0_AUDIENCE")
-
-    signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
-    kwargs = {
-        "algorithms": ["RS256"],
-        "issuer": f"https://{domain}/",
-    }
-    if audience:
-        kwargs["audience"] = audience
-    else:
-        kwargs["options"] = {"verify_aud": False}
-
-    return jwt.decode(token, signing_key.key, **kwargs)
+    secret = os.environ["SUPABASE_JWT_SECRET"]
+    return jwt.decode(token, secret, algorithms=["HS256"], audience="authenticated")
 
 
 def require_auth(f):
@@ -61,12 +38,15 @@ def require_auth(f):
 
         try:
             sb = _get_supabase()
+            user_meta = claims.get("user_metadata", {})
             payload = {
                 "user_id": claims["sub"],
-                "name": claims.get("name", claims.get("nickname", "")),
+                "name": user_meta.get("full_name", ""),
                 "email": claims.get("email", ""),
                 "bias": 0.5,
             }
+            if user_meta.get("state"):
+                payload["state"] = user_meta["state"]
             logger.info("Upserting user: %s", payload)
             result = sb.table("users").upsert(payload, on_conflict="user_id").execute()
             logger.info("Upsert result: %s", result)

@@ -1,16 +1,51 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useUserState } from "../context/UserStateContext";
+import type { User } from "@supabase/supabase-js";
 
-const PDF_STATES = [
-  "AK","AL","AR","CO","CT","DC","FL","GA","HI","ID",
-  "IN","KS","KY","LA","MA","MD","ME","MN","MO","MS",
-  "MT","NC","ND","NE","NJ","NM","NV","OH","OK","OR",
-  "PA","RI","SD","TN","US","UT","VA","VT","WA","WI","WY",
-];
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export default function Navbar() {
-  const { state, setState } = useUserState();
+  const supabase = createClient();
+  const { state } = useUserState();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const synced = useRef(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sync user to backend on first login
+  useEffect(() => {
+    if (!user || synced.current) return;
+    synced.current = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.access_token) return;
+      fetch(`${BACKEND_URL}/me`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => {});
+    });
+  }, [user]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.href = "/";
+  };
 
   return (
     <nav style={{
@@ -25,22 +60,53 @@ export default function Navbar() {
       </a>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <select
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          style={{
+        {user && state && (
+          <span style={{ fontSize: "0.875rem", opacity: 0.7 }}>{state}</span>
+        )}
+        {loading ? (
+          <span style={{ fontSize: "0.875rem", opacity: 0.5 }}>...</span>
+        ) : user ? (
+          <>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "0.875rem",
+            }}>
+              <span style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: "#22c55e",
+                display: "inline-block",
+              }} />
+              {user.user_metadata?.full_name || user.email}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                fontSize: "0.875rem",
+                opacity: 0.7,
+                textDecoration: "underline",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Log out
+            </button>
+          </>
+        ) : (
+          <a href="/login" style={{
             fontSize: "0.875rem",
-            padding: "4px 8px",
-            borderRadius: "6px",
+            padding: "6px 14px",
             border: "1px solid #555",
-            background: "transparent",
-            cursor: "pointer",
-          }}
-        >
-          {PDF_STATES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+            borderRadius: "6px",
+          }}>
+            Log in
+          </a>
+        )}
       </div>
     </nav>
   );
