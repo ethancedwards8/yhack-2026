@@ -443,6 +443,13 @@ def get_legiscan_bill(bill_id):
     return jsonify(bill)
 
 
+@app.route("/fax", methods=['POST'])
+def send_fax():
+    data = request.get_json(silent=True) or {}
+    
+    return jsonify({})
+
+
 if __name__ == "__main__":
     app.run(
         host=os.getenv("FLASK_HOST", "0.0.0.0"),
