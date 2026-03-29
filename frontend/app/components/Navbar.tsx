@@ -80,9 +80,6 @@ export default function Navbar() {
           ) : user ? (
             <div className="y2kUserStack">
               {state ? <span className="y2kStateBadge">State: {state}</span> : null}
-              <span className="y2kUserMeta">
-                User: {user.user_metadata?.full_name || "Authenticated user"}
-              </span>
               <span className="y2kUserMeta">Email: {user.email}</span>
               <a href="/match" className="y2kActionLink">Find Match</a>
               <a href="/votes" className="y2kActionLink">My Votes</a>
