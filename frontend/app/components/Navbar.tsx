@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import HorizontalAdRail from "./HorizontalAdRail";
 import { useUserState } from "../context/UserStateContext";
 import type { User } from "@supabase/supabase-js";
 
@@ -77,16 +78,23 @@ export default function Navbar() {
               priority
             />
           </div>
-          <div className="y2kLonelyReposWrap">
-            <Image
-              src="/images/lonelyrepos.png"
-              alt="Lonely repos banner"
-              width={700}
-              height={242}
-              className="y2kLonelyReposImage"
-              priority
-            />
-          </div>
+          <HorizontalAdRail
+            images={[
+              {
+                src: "/images/lonelyrepos.png",
+                alt: "Lonely repos banner",
+                width: 700,
+                height: 242,
+              },
+              {
+                src: "/images/GSTACK.png",
+                alt: "Gstack banner",
+                width: 700,
+                height: 242,
+              },
+            ]}
+            cycleMs={10000}
+          />
         </a>
 
         <div className="y2kNavRight">
