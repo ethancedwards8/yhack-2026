@@ -61,16 +61,7 @@ def _normalize_bill_bias(raw_bias) -> int:
     }
     return mapping.get(text, 2)
 
-CORS(
-    app,
-    resources={r"/*": {"origins": [
-        "https://hotbillsnearyou.com",
-        "https://www.hotbillsnearyou.com",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]}},
-    supports_credentials=True,
-)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/health")
