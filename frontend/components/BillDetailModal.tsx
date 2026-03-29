@@ -45,7 +45,7 @@ export default function BillDetailModal({
       setIsLoading(true)
       setError(null)
       try {
-        const response = await fetch(`${apiBaseUrl}/bills/${billId}`)
+        const response = await fetch(`${apiBaseUrl}/bill/${billId}`)
         if (!response.ok) {
           throw new Error(`Failed to load bill details (${response.status})`)
         }
