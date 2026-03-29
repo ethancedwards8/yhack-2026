@@ -55,9 +55,16 @@ export default function Navbar() {
       padding: "12px 24px",
       borderBottom: "1px solid #333",
     }}>
-      <a href="/" style={{ fontWeight: 700, fontSize: "1.1rem" }}>
-        BillRank
-      </a>
+      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <a href="/" style={{ fontWeight: 700, fontSize: "1.1rem" }}>
+          BillRank
+        </a>
+        {user && (
+          <a href="/match" style={{ fontSize: "0.875rem", opacity: 0.75 }}>
+            Find Match
+          </a>
+        )}
+      </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {user ? (
