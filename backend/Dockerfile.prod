@@ -1,0 +1,7 @@
+FROM python
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /app
+COPY . /app
+RUN uv sync --frozen --compile-bytecode --no-dev
+ENTRYPOINT ["uv", "run", "start"]

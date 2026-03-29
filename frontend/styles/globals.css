@@ -1,9 +1,9 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card-background: #f7f8fa;
-  --card-border: #d8dbe2;
-  --muted-text: #5a6475;
+  --background: #05051a;
+  --foreground: #f8f8ff;
+  --card-background: #fffef9;
+  --card-border: #0022ff;
+  --muted-text: #2c2c65;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,10 +21,200 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #5748db;
+  font-family: "Trebuchet MS", Tahoma, Verdana, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.portalBody {
+  min-height: 100dvh;
+  margin: 0;
+}
+
+.portalMain {
+  padding: 16px 18px 28px;
+  display: grid;
+  grid-template-columns: clamp(120px, 18vw, 320px) minmax(320px, 940px) clamp(120px, 18vw, 320px);
+  justify-content: center;
+  align-items: start;
+  gap: 12px;
+}
+
+.portalImageRail {
+  grid-column: 3;
+  grid-row: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 0;
+}
+
+.portalImageRailImage {
+  display: block;
+  width: 95%;
+  height: auto;
+}
+
+.portalContentFrame {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  padding: 16px;
+  border: 4px ridge #ffe300;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.06) 0 8px,
+      rgba(255, 0, 255, 0.09) 8px 16px
+    ),
+    #08081f;
+  box-shadow:
+    0 0 0 3px #ff45ff inset,
+    0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.portalHeader {
+  display: block;
+  gap: 0;
+}
+
+.y2kNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 14px;
+  padding: 10px 12px;
+  border-top: 3px solid #00dcff;
+  border-bottom: 3px solid #00dcff;
+  background: linear-gradient(180deg, #0f2eff, #001da5 55%, #170073);
+  overflow-x: auto;
+}
+
+.y2kHeroWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 88px;
+}
+
+.y2kCenterHotbillsWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 100%;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  line-height: 0;
+}
+
+.y2kCenterHotbillsImage {
+  display: block;
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+}
+
+.y2kLonelyReposWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  line-height: 0;
+}
+
+.y2kLonelyReposImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.y2kNavRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.y2kUserStack {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.y2kStackItem {
+  width: fit-content;
+}
+
+.y2kGhostText {
+  color: #fff;
+  opacity: 0.75;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.y2kStateBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border: 2px solid #ffec42;
+  background: #3f22d3;
+  color: #fff;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.y2kUserMeta {
+  display: inline-flex;
+  align-items: center;
+  border: 2px inset #d4d4d4;
+  background: #150161;
+  color: #ffffff;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.y2kActionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px outset #f5f5f5;
+  padding: 5px 10px;
+  background: linear-gradient(180deg, #ffe24e, #ffab09);
+  color: #2b0f00;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.y2kActionLink:hover {
+  filter: saturate(1.25) brightness(1.05);
 }
 
 .appBody {
@@ -32,10 +222,10 @@ body {
 }
 
 .appShell {
-  min-height: 100dvh;
+  min-height: auto;
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: 6px;
 }
 
 .deckRoot {
@@ -44,13 +234,41 @@ body {
   gap: 14px;
 }
 
+.y2kDeckRoot {
+  border: 3px groove #ffe152;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, #eef2ff 0%, #dff1ff 46%, #fdf2ff 100%);
+  box-shadow:
+    0 0 0 2px #0026ff,
+    0 10px 18px rgba(0, 0, 0, 0.4);
+}
+
+.deckRoot.deckLight {
+  color-scheme: light;
+  color: var(--foreground);
+  --background: #ffffff;
+  --foreground: #171717;
+  --card-background: #f7f8fa;
+  --card-border: #d8dbe2;
+  --muted-text: #5a6475;
+}
+
 .deckHeader h1 {
   font-size: 1.6rem;
   margin-bottom: 4px;
 }
 
+.y2kDeckTitle {
+  color: #12004a;
+  text-shadow: 1px 1px 0 #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .subtleText {
   color: var(--muted-text);
+  font-size: 0.9rem;
 }
 
 .deckStage {
@@ -66,14 +284,16 @@ body {
 
 .billCard {
   height: 430px;
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  border: 3px ridge var(--card-border);
   background: var(--card-background);
   padding: 18px;
   display: grid;
   gap: 14px;
   grid-template-rows: auto 1fr auto;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.09);
+  box-shadow:
+    0 0 0 2px #ff42ee inset,
+    0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
 .billCardTop {
@@ -91,16 +311,22 @@ body {
 }
 
 .billMeta {
-  color: var(--muted-text);
+  color: #1f2d6b;
   font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .billTitle {
   line-height: 1.3;
+  color: #090934;
+  font-size: 1.2rem;
 }
 
 .billSummary {
   line-height: 1.45;
+  color: #252556;
 }
 
 .billFooter {
@@ -110,10 +336,13 @@ body {
 }
 
 .pill {
-  border-radius: 999px;
-  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  border: 2px outset #e2e2e2;
+  background: linear-gradient(180deg, #fff5ba, #ffd550);
   padding: 4px 10px;
   font-size: 0.82rem;
+  font-weight: 700;
+  color: #2b1900;
 }
 
 .deckFooter {
@@ -125,18 +354,20 @@ body {
 .primaryButton,
 .secondaryButton,
 .iconButton {
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border: 2px outset #ffffff;
+  border-radius: 3px;
   padding: 10px 12px;
-  font-weight: 600;
-  background: #ffffff;
-  color: #111827;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #fff47d, #ffb810);
+  color: #2f1400;
 }
 
 .primaryButton {
-  background: #1d4ed8;
+  background: linear-gradient(180deg, #1ce6ff, #0084ff 55%, #0645df);
   color: #ffffff;
-  border-color: #1d4ed8;
+  border-color: #d7f9ff;
 }
 
 .primaryButton:disabled,
@@ -146,10 +377,30 @@ body {
 
 .skeletonCard {
   height: 430px;
-  border-radius: 16px;
-  background: linear-gradient(100deg, #eceff4 30%, #f7f8fa 45%, #eceff4 60%);
+  border-radius: 4px;
+  border: 3px ridge #ff47ef;
+  background: linear-gradient(100deg, #cff5ff 30%, #ffffff 45%, #f0d4ff 60%);
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
+}
+
+.deckRoot.deckLight .skeletonCard {
+  background: linear-gradient(100deg, #cff5ff 30%, #ffffff 45%, #f0d4ff 60%);
+  background-size: 200% 100%;
+}
+
+.deckActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+}
+
+.deckActionButton svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .modalBackdrop {
@@ -167,11 +418,12 @@ body {
   width: min(100%, 680px);
   max-height: 86dvh;
   overflow: auto;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
+  border-radius: 3px;
+  border: 3px ridge #ffe65a;
   padding: 16px;
   display: grid;
   gap: 12px;
+  box-shadow: 0 0 0 2px #00e1ff inset;
 }
 
 .modalHeader {
@@ -187,7 +439,17 @@ body {
 }
 
 .errorText {
-  color: #dc2626;
+  color: #b30000;
+  font-weight: 700;
+}
+
+.voteCard {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.voteCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px #00e1ff inset, 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes shimmer {
@@ -211,30 +473,88 @@ a {
 }
 
 @media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+  html,
+  body {
+    color-scheme: light;
   }
 
   :root {
-    --card-background: #121826;
-    --card-border: #2b3343;
-    --muted-text: #9ca9bd;
+    --background: #05051a;
+    --foreground: #f8f8ff;
+    --card-background: #fffef9;
+    --card-border: #0022ff;
+    --muted-text: #2c2c65;
   }
 
   .primaryButton,
   .secondaryButton,
   .iconButton {
-    background: #0f172a;
-    color: #e5e7eb;
+    background: linear-gradient(180deg, #fff47d, #ffb810);
+    color: #2f1400;
   }
 
   .primaryButton {
-    background: #2563eb;
+    background: linear-gradient(180deg, #1ce6ff, #0084ff 55%, #0645df);
     color: #ffffff;
   }
 
   .skeletonCard {
-    background: linear-gradient(100deg, #1d2533 30%, #283244 45%, #1d2533 60%);
+    background: linear-gradient(100deg, #cff5ff 30%, #ffffff 45%, #f0d4ff 60%);
     background-size: 200% 100%;
+  }
+
+  .deckRoot.deckLight .primaryButton,
+  .deckRoot.deckLight .secondaryButton,
+  .deckRoot.deckLight .iconButton {
+    background: linear-gradient(180deg, #fff47d, #ffb810);
+    color: #2f1400;
+    border-color: #ffffff;
+  }
+
+  .deckRoot.deckLight .primaryButton {
+    background: linear-gradient(180deg, #1ce6ff, #0084ff 55%, #0645df);
+    color: #ffffff;
+    border-color: #d7f9ff;
+  }
+}
+
+@media (max-width: 720px) {
+  .y2kNav {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .y2kHeroWrap {
+    flex: 0 0 auto;
+    height: 64px;
+  }
+
+  .y2kNavRight {
+    justify-content: flex-start;
+  }
+
+  .y2kUserStack {
+    justify-content: flex-start;
+  }
+
+  .portalContentFrame {
+    padding: 12px;
+  }
+
+  .portalMain {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .portalImageRail {
+    grid-column: 1;
+    grid-row: auto;
+    width: min(320px, 100%);
+    justify-self: center;
+  }
+
+  .portalContentFrame {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
